@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Presupuesto Mensual</title>
+
+    <style>
+        body {
+            font-family: Verdana, sans-serif;
+            /* Aplica Verdana a todo el cuerpo */
+            font-size: 14px;
+            /* Tamaño de fuente por defecto */
+            margin-top: 10px;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            /* Ocupa toda la altura de la ventana */
+            margin: 50px;
+            /* Elimina el margen por defecto */
+            align-items: center;
+            /* Centra los elementos horizontalmente */
+            background-color: #FFA500;
+        }
+
+        .container {
+            margin: 0px;
+            /* Margen ajustado para el contenedor */
+        }
+
+        .right {
+            text-align: right;
+            /* Alineación a la derecha */
+        }
+
+        .left {
+            text-align: left;
+            /* Alineación a la izquierda */
+        }
+
+        .full-width-input {
+            width: calc(100% - 20px);
+            /* Ancho ajustado para dejar espacio en los lados */
+            min-width: 200px;
+            /* Ancho mínimo para el campo */
+            padding: 10px;
+            /* Espaciado interno */
+            box-sizing: border-box;
+            /* Para que el padding no afecte el ancho total */
+            margin-bottom: 10px;
+            /* Espacio entre inputs */
+            resize: none;
+            /* Elimina el control de redimensionamiento manual */
+            overflow: hidden;
+            /* Evita que aparezca scroll dentro del textarea */
+            border-radius: 5px;
+            /* Bordes redondeados */
+            border: 1px solid #ccc;
+            /* Borde del input */
+        }
+
+        p {
+            margin: 0 0 10px 0;
+            /* Margen de los párrafos */
+        }
+
+        .date-container {
+            text-align: right;
+            /* Alineación de la fecha a la derecha */
+        }
+
+        /* Botón de "Volver atrás" con ajuste de posición */
+        #back-button {
+            width: auto;
+            /* Ajuste automático del ancho según el texto */
+            padding: 8px 20px;
+            /* Añade espacio interno al botón */
+            position: absolute;
+            /* Posición absoluta */
+            top: 10px;
+            /* Separación desde el borde superior */
+            left: 20px;
+            /* Separación desde el borde izquierdo */
+            background-color: #484b48;
+            /* Color de fondo */
+            color: white;
+            /* Color del texto */
+            border: none;
+            /* Sin borde */
+            border-radius: 5px;
+            /* Bordes redondeados */
+            cursor: pointer;
+            /* Cambia el cursor al pasar el mouse */
+        }
+
+        #back-button:hover {
+            background-color: #e6740b;
+            /* Efecto hover */
+        }
+
+        .suggestions {
+            background-color: white;
+            /* Establecer el fondo blanco */
+            border: 1px solid #ccc;
+            /* Opcional: agregar un borde para mejorar el contraste */
+            max-height: 150px;
+            /* Limitar la altura máxima de la lista */
+            overflow-y: auto;
+            /* Agregar desplazamiento si hay muchas sugerencias */
+            position: absolute;
+            /* Para posicionar la lista correctamente */
+            z-index: 1000;
+            /* Asegurarte de que esté sobre otros elementos */
+        }
+
+        .suggestion-item {
+            padding: 5px;
+            cursor: pointer;
+        }
+
+        .suggestion-item:hover {
+            background-color: #f0f0f0;
+        }
+
+        .custom-prompt {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            border: 1px solid #ccc;
+            padding: 20px;
+            z-index: 1000;
+            /* Asegúrate de que esté encima de otros elementos */
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .prompt-content {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sugerencias-container {
+            border: 1px solid #ccc;
+            max-height: 150px;
+            overflow-y: auto;
+            display: none;
+            /* Inicialmente oculto */
+            position: absolute;
+            /* Para que aparezca debajo del input */
+            background: white;
+            z-index: 1000;
+            /* Para que esté por encima de otros elementos */
+        }
+
+        .sugerencia {
+            padding: 10px;
+            cursor: pointer;
+        }
+
+        .sugerencia:hover {
+            background-color: #f0f0f0;
+            /* Resalta la sugerencia al pasar el mouse */
+        }
+
+        .input-container {
+            display: flex;
+            /* Usar flexbox para alinear los elementos */
+            flex-direction: column;
+            /* Colocar los elementos en columna */
+            width: 96%;
+            /* Ancho completo */
+            border-radius: 5px;
+            /* Bordes redondeados */
+
+        }
+
+        #insumos-seleccionados {
+            width: 102%;
+            /* Ancho completo */
+            resize: none;
+            /* Evitar redimensionar manualmente */
+            overflow: hidden;
+            /* Ocultar desbordamiento */
+            min-height: 30px;
+            /* Altura mínima */
+            max-height: 150px;
+            /* Altura máxima para evitar que se expanda demasiado */
+            padding: 5px;
+            /* Espaciado interno */
+            font-size: 16px;
+            /* Tamaño de fuente */
+            border: 1px solid #ccc;
+            /* Borde del textarea */
+            border-radius: 5px;
+            /* Bordes redondeados */
+            margin: 10px 0 5px;
+            /* Margen alrededor de la etiqueta */
+        }
+
+        label {
+            font-family: Verdana, sans-serif;
+            /* Aplica Verdana a las etiquetas */
+            font-size: 16px;
+            /* Tamaño de fuente de 16 para las etiquetas específicas */
+            margin: 10px 0 5px;
+            /* Margen alrededor de la etiqueta */
+            border-radius: 5px;
+            /* Bordes redondeados */
+
+        }
+
+        #insumo-input {
+            width: 100%;
+            /* Ancho completo del input de insumos */
+            padding: 12px;
+            /* Espaciado interno */
+            border: 1px solid #ccc;
+            /* Borde del input */
+            border-radius: 5px;
+            /* Bordes redondeados */
+            margin: 10px 0 5px;
+            /* Margen alrededor de la etiqueta */
+        }
+
+        #sugerencias {
+            background: white;
+            /* Fondo blanco para las sugerencias */
+            border: 1px solid #ccc;
+            /* Borde de las sugerencias */
+            border-radius: 5px;
+            /* Bordes redondeados */
+            max-height: 150px;
+            /* Altura máxima para las sugerencias */
+            overflow-y: auto;
+            /* Scroll para las sugerencias si es necesario */
+            position: absolute;
+            /* Posición absoluta para las sugerencias */
+            z-index: 10;
+            /* Asegura que las sugerencias estén por encima */
+            width: calc(100% - 22px);
+            /* Ancho total menos el padding y borde */
+        }
+
+        #equipment-text {
+            font-family: Verdana, sans-serif;
+            font-size: 14px;
+        }
+
+        /* Estilo común para los botones */
+        #aceptar-button,
+        #borrar-button,
+        #generar-pdf-button {
+            width: auto;
+            /* Ajuste automático del ancho según el texto */
+            padding: 8px 20px;
+            /* Espacio interno al botón */
+            background-color: #484b48;
+            /* Color de fondo */
+            color: white;
+            /* Color del texto */
+            border: none;
+            /* Sin borde */
+            border-radius: 5px;
+            /* Bordes redondeados */
+            cursor: pointer;
+            /* Cambia el cursor al pasar el ratón */
+            margin: 5px;
+            /* Espacio entre los botones */
+        }
+
+        #aceptar-button:hover,
+        #borrar-button:hover,
+        #generar-pdf-button:hover {
+            background-color: #e6740b;
+            /* Efecto hover */
+        }
+
+        #hoursPerDay {
+            width: 100px;
+        }
+    </style>
+</head>
+
+<body>
+    <button id="back-button" onclick="window.history.back();">Volver atrás</button>
+
+    <div class="container">
+        <!-- Sección de la fecha -->
+        <div class="date-container">
+            <label for="date"></label>
+            <input type="date" id="date" required>
+        </div>
+
+        <!-- Sección del destinatario -->
+        <div class="left">
+            <label id="destinatario" for="recipient">Destinatario:</label>
+            <textarea id="recipient" class="full-width-input" rows="1" style="margin-top: 20px;"
+                oninput="autoExpand(this)" required></textarea>
+        </div>
+
+        <!-- Presentación de la empresa -->
+        <div id="presentation-text">
+            <p>Nos es grato presentarles nuestra empresa que se destaca por la calidad de los servicios, ofreciendo
+                servicios de limpieza, desinfección y mantenimiento integral.</p>
+            <p>CORSACOR (Corporación de soluciones ambientales Córdoba S.A.S. - C.U.I.T. Nº 3071655148-9) permite
+                ofrecer un servicio totalmente organizado, controlado y eficiente. Nuestro objetivo se fundamenta en la
+                prestación de servicios de alta calidad, considerando en todo momento los requerimientos y
+                circunstancias concretas de cada uno de nuestros clientes para adaptarnos a sus necesidades reales.</p>
+        </div>
+
+        <div style="margin-bottom: 20px;">
+            <label for="service">Propuesta económica:</label>
+            <select id="service" class="inline-input" style="display: inline-block; width: 150px;" required>
+                <option value="" disabled selected>Selecciona un servicio</option>
+                <option value="Servicio de limpieza integral">Servicio de limpieza integral</option>
+                <option value="Servicio mantenimiento general">Servicio mantenimiento general</option>
+                <option value="Servicio de parquización">Servicio de parquización</option>
+                <option value="Servicio de seguridad">Servicio de seguridad</option>
+            </select>
+
+            <label for="address" style="display: inline-block; margin-left: 10px;">Domicilio:</label>
+            <textarea id="address" class="inline-input" rows="1" style="display: inline-block; width: 300px;"
+                oninput="autoExpand(this)" required></textarea>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+            <label for="hours">Horas por día:</label>
+            <select id="hoursPerDay" onchange="calculateWeeklyHours()">
+                <option value="">Seleccionar Horas</option>
+                <option value="1">1 hora</option>
+                <option value="2">2 Hs.</option>
+                <option value="3">3 Hs.</option>
+                <option value="4">4 Hs.</option>
+                <option value="5">5 Hs.</option>
+                <option value="6">6 Hs.</option>
+                <option value="7">7 Hs.</option>
+                <option value="8">8 Hs.</option>
+            </select>
+
+            <label>Días de la semana:</label>
+            <div style="display: flex; flex-wrap: wrap; gap: 10px;">
+                <label><input type="checkbox" class="dayCheckbox" value="Lunes"> Lunes</label>
+                <label><input type="checkbox" class="dayCheckbox" value="Martes"> Martes</label>
+                <label><input type="checkbox" class="dayCheckbox" value="Miércoles"> Miércoles</label>
+                <label><input type="checkbox" class="dayCheckbox" value="Jueves"> Jueves</label>
+                <label><input type="checkbox" class="dayCheckbox" value="Viernes"> Viernes</label>
+                <label><input type="checkbox" class="dayCheckbox" value="Sábado"> Sábado</label>
+                <label><input type="checkbox" class="dayCheckbox" value="Domingo"> Domingo</label>
+            </div>
+
+            <label for="weeklyHours">Horas semanales:</label>
+            <input type="number" id="weeklyHours" style="width: 50px;" readonly>
+        </div>
+
+        <label for="tasks">Tareas a llevarse a cabo:</label>
+        <textarea id="tasks" class="full-width-input" rows="1" oninput="autoExpand(this)" required></textarea>
+
+        <!-- insumos -->
+        <div class="input-container">
+            <input type="text" id="insumo-input" class="full-width-input" rows="1" oninput="autoExpand(this)" required
+                placeholder="Escribe un insumo..." autocomplete="off">
+            <div id="sugerencias" class="sugerencias-container"></div>
+            <label for="insumos-seleccionados">Insumos:</label>
+            <textarea id="insumos-seleccionados" class="full-width-input" rows="1" oninput="autoExpand(this)" required
+                placeholder="Insumos seleccionados" readonly></textarea>
+        </div>
+
+
+
+        <!-- Texto adicional sobre funcionamiento de equipos -->
+        <div id="equipment-text">
+            <p>Funcionamiento de equipos, maquinarias, herramientas e implementos: En óptimas condiciones de
+                funcionamiento para el desarrollo de las tareas programadas por nuestra área operativa.</p>
+        </div>
+
+        <!-- Inputs finales -->
+        <div class="container">
+            <!-- Campo de "Días de vigencia del presupuesto" -->
+            <label for="validity">Días de vigencia del presupuesto:</label>
+            <input type="text" id="validity" class="full-width-input" rows="1" oninput="autoExpand(this)"
+                placeholder="Escribe aquí" required>
+        </div>
+        <h4>En todos nuestros servicios nos comprometemos y ofrecemos:</h4>
+        <p>-> Supervición continua -> uniformes y elementos de protección personal -> cronograma y planificación
+            detallada de limpieza de todos los espacios comunes del edificio -> traslados y reemplazos -> personal
+            capacitado y entrenado en procesos y tareas requeridas </p>
+
+        <div class="container">
+            <!-- "Costo" -->
+            <label for="payment">Costo:</label>
+            <input type="text" id="payment" class="full-width-input" rows="1" oninput="autoExpand(this)"
+                placeholder="Escribe aquí" required>
+        </div>
+
+        <!-- Mensaje de despedida -->
+        <p id="saludoFinal">Esperamos que el presente presupuesto se ajuste a sus necesidades y sea de su interés.
+            Estamos a su
+            disposición por cualquier consulta, aclaración o modificación del mismo.</p>
+
+        <!-- Contacto final alineado a la derecha -->
+        <div class="right">
+            <p id="footer-text">
+                Sandra Córdoba<br>
+                Área Comercial<br>
+                Tel: 351-2049880
+            </p>
+        </div>
+
+        <!-- Lista y botones -->
+        <ul id="budget-list"></ul>
+
+        <!-- Botones para interactividad -->
+        <button id="aceptar-button" onclick="addItemMensual()">Aceptar</button>
+        <button id="borrar-button" onclick="deleteItemMensual()">Borrar</button>
+        <button id="generar-pdf-button" onclick="generatePDFmensual()">Generar .PDF</button>
+
+        <!-- Contenedor para el mensaje -->
+        <div id="message"></div>
+    </div>
+
+    <!-- Script de funciones -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.2/html2pdf.bundle.min.js"></script>
+
+
+    <script>
+        function autoExpand(element) {
+            // Ajustar el tamaño del textarea de acuerdo a su contenido
+            element.style.height = 'auto';
+            element.style.height = (element.scrollHeight) + 'px';
+        }
+
+        function generatePDF() {
+            // Ajusta el estilo del destinatario para el PDF
+            const recipient = document.getElementById('recipient');
+            recipient.style.marginTop = '20px';
+
+            const element = document.body;
+
+            // Opciones de html2pdf para ajustar el margen y otros parámetros
+            const opt = {
+                margin: [10, 0, 0, 0],  // Márgenes superiores, derechos, inferiores, izquierdos
+                filename: 'presupuesto.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2 },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+
+            // Generar el PDF
+            html2pdf().from(element).set(opt).save()
+                .then(() => {
+                    // Restaurar el estilo original después de la generación del PDF
+                    recipient.style.marginTop = '0';
+                });
+        }
+    </script>
+    <script src="renderer.js" defer></script>
+
+</body>
+
+</html>

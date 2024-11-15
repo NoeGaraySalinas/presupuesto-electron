@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Presupuesto de servicio de seguridad</title>
+
+    <style>
+        body {
+            font-family: Verdana, sans-serif;
+            /* Aplica Verdana a todo el cuerpo */
+            font-size: 14px;
+            /* Tamaño de fuente por defecto */
+            margin-top: 10px;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            /* Ocupa toda la altura de la ventana */
+            margin: 50px;
+            /* Elimina el margen por defecto */
+            align-items: center;
+            /* Centra los elementos horizontalmente */
+            background-color: #FFA500;
+        }
+
+        .container {
+            margin: 20px;
+            /* Margen ajustado para el contenedor */
+        }
+
+        .right {
+            text-align: right;
+            /* Alineación a la derecha */
+        }
+
+        .left {
+            text-align: left;
+            /* Alineación a la izquierda */
+        }
+
+        .full-width-input {
+            width: calc(100% - 20px);
+            /* Ancho ajustado para dejar espacio en los lados */
+            min-width: 200px;
+            /* Ancho mínimo para el campo */
+            padding: 10px;
+            /* Espaciado interno */
+            box-sizing: border-box;
+            /* Para que el padding no afecte el ancho total */
+            margin-bottom: 10px;
+            /* Espacio entre inputs */
+            resize: none;
+            /* Elimina el control de redimensionamiento manual */
+            overflow: hidden;
+            /* Evita que aparezca scroll dentro del textarea */
+        }
+
+        p {
+            margin: 0 0 10px 0;
+            /* Margen de los párrafos */
+        }
+
+        .date-container {
+            text-align: right;
+            /* Alineación de la fecha a la derecha */
+        }
+
+        /* Botón de "Volver atrás" con ajuste de posición */
+        #back-button {
+            width: auto;
+            /* Ajuste automático del ancho según el texto */
+            padding: 8px 20px;
+            /* Añade espacio interno al botón */
+            position: absolute;
+            /* Posición absoluta */
+            top: 10px;
+            /* Separación desde el borde superior */
+            left: 20px;
+            /* Separación desde el borde izquierdo */
+            background-color: #484b48;
+            /* Color de fondo */
+            color: white;
+            /* Color del texto */
+            border: none;
+            /* Sin borde */
+            border-radius: 5px;
+            /* Bordes redondeados */
+            cursor: pointer;
+            /* Cambia el cursor al pasar el mouse */
+        }
+
+        #back-button:hover {
+            background-color: #e6740b;
+            /* Efecto hover */
+        }
+
+        /* Estilo común para los botones */
+        #aceptar-button,
+        #borrar-button,
+        #tablaEstatica,
+        #generar-pdf-button {
+            width: auto;
+            /* Ajuste automático del ancho según el texto */
+            padding: 8px 20px;
+            /* Espacio interno al botón */
+            background-color: #484b48;
+            /* Color de fondo */
+            color: white;
+            /* Color del texto */
+            border: none;
+            /* Sin borde */
+            border-radius: 5px;
+            /* Bordes redondeados */
+            cursor: pointer;
+            /* Cambia el cursor al pasar el ratón */
+            margin: 5px;
+            /* Espacio entre los botones */
+        }
+
+        #tablaEstatica:hover,
+        #aceptar-button:hover,
+        #borrar-button:hover,
+        #generar-pdf-button:hover {
+            background-color: #e6740b;
+            /* Efecto hover */
+        }
+
+        .suggestions {
+            background-color: white;
+            /* Establecer el fondo blanco */
+            border: 1px solid #ccc;
+            /* Opcional: agregar un borde para mejorar el contraste */
+            max-height: 150px;
+            /* Limitar la altura máxima de la lista */
+            overflow-y: auto;
+            /* Agregar desplazamiento si hay muchas sugerencias */
+            position: absolute;
+            /* Para posicionar la lista correctamente */
+            z-index: 1000;
+            /* Asegurarte de que esté sobre otros elementos */
+        }
+
+        .suggestion-item {
+            padding: 5px;
+            cursor: pointer;
+        }
+
+        .suggestion-item:hover {
+            background-color: #f0f0f0;
+        }
+
+        .custom-prompt {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            border: 1px solid #ccc;
+            padding: 20px;
+            z-index: 1000;
+            /* Asegúrate de que esté encima de otros elementos */
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .prompt-content {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sugerencias-container {
+            border: 1px solid #ccc;
+            max-height: 150px;
+            overflow-y: auto;
+            display: none;
+            /* Inicialmente oculto */
+            position: absolute;
+            /* Para que aparezca debajo del input */
+            background: white;
+            z-index: 1000;
+            /* Para que esté por encima de otros elementos */
+        }
+
+        .sugerencia {
+            padding: 10px;
+            cursor: pointer;
+        }
+
+        .sugerencia:hover {
+            background-color: #f0f0f0;
+            /* Resalta la sugerencia al pasar el mouse */
+        }
+
+        .input-container {
+            display: flex;
+            /* Usar flexbox para alinear los elementos */
+            flex-direction: column;
+            /* Colocar los elementos en columna */
+            width: 96%;
+            /* Ancho completo */
+        }
+
+        #insumos-seleccionados {
+            width: 102%;
+            /* Ancho completo */
+            resize: none;
+            /* Evitar redimensionar manualmente */
+            overflow: hidden;
+            /* Ocultar desbordamiento */
+            min-height: 30px;
+            /* Altura mínima */
+            max-height: 150px;
+            /* Altura máxima para evitar que se expanda demasiado */
+            padding: 5px;
+            /* Espaciado interno */
+            font-size: 16px;
+            /* Tamaño de fuente */
+            border: 1px solid #ccc;
+            /* Borde del textarea */
+            border-radius: 5px;
+            /* Bordes redondeados */
+            margin: 10px 0 5px;
+            /* Margen alrededor de la etiqueta */
+        }
+
+        label {
+            font-family: Verdana, sans-serif;
+            /* Aplica Verdana a las etiquetas */
+            font-size: 16px;
+            /* Tamaño de fuente de 16 para las etiquetas específicas */
+            margin: 10px 0 5px;
+            /* Margen alrededor de la etiqueta */
+        }
+
+        #insumo-input {
+            width: 100%;
+            /* Ancho completo del input de insumos */
+            padding: 12px;
+            /* Espaciado interno */
+            border: 1px solid #ccc;
+            /* Borde del input */
+            border-radius: 5px;
+            /* Bordes redondeados */
+            margin: 10px 0 5px;
+            /* Margen alrededor de la etiqueta */
+        }
+
+        #sugerencias {
+            background: white;
+            /* Fondo blanco para las sugerencias */
+            border: 1px solid #ccc;
+            /* Borde de las sugerencias */
+            border-radius: 5px;
+            /* Bordes redondeados */
+            max-height: 150px;
+            /* Altura máxima para las sugerencias */
+            overflow-y: auto;
+            /* Scroll para las sugerencias si es necesario */
+            position: absolute;
+            /* Posición absoluta para las sugerencias */
+            z-index: 10;
+            /* Asegura que las sugerencias estén por encima */
+            width: calc(100% - 22px);
+            /* Ancho total menos el padding y borde */
+        }
+
+        #equipment-text {
+            font-family: Verdana, sans-serif;
+            font-size: 14px;
+        }
+
+        .table-container {
+            margin: 20px 0;
+            background: white;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            padding: 10px;
+            text-align: left;
+            border: 1px solid #ddd;
+            font-size: 14px;
+        }
+
+        th {
+            background-color: #FFA500;
+            color: white;
+            font-weight: bold;
+        }
+
+        .highlight {
+            background-color: #f4f4f4;
+        }
+
+        .total-row th,
+        .total-row td {
+            font-weight: bold;
+            background: #4e54c8;
+            color: #fff;
+        }
+
+        /* Estilo para hacer las celdas editables */
+        td[contenteditable="true"] {
+            background-color: #fff9e6;
+            /* Color de fondo claro para celdas editables */
+        }
+
+        td[contenteditable="true"]:hover {
+            background-color: #ffe6b3;
+            /* Color más oscuro al pasar el mouse */
+            cursor: text;
+            /* Muestra el cursor de texto al pasar sobre celdas editables */
+        }
+    </style>
+</head>
+
+<body>
+    <button id="back-button" onclick="window.history.back();">Volver atrás</button>
+
+    <div class="container">
+        <!-- Sección de la fecha -->
+        <div class="date-container">
+            <label for="date"></label>
+            <input type="date" id="date" required>
+        </div>
+
+        <!-- Sección del destinatario -->
+        <div class="left">
+            <label for="recipient">Destinatario:</label>
+            <textarea id="recipient" class="full-width-input" rows="1" style="margin-top: 20px;"
+                oninput="autoExpand(this)" required></textarea>
+        </div>
+
+        <!-- Presentación de la empresa -->
+        <div id="presentation-text">
+            <p>Nos resulta sumamente grato ponernos en contacto con ustedes a fin de presentarles nuestra empresa de
+                Seguridad y Vigilancia física.
+                CORSACOR (Corporación de Soluciones Ambientales Córdoba S.A.S.) CUIT 30-71655148-9, permite
+                ofrecer un servicio de seguridad totalmente confiable, serio y eficiente.
+                Contamos con la habilitación como empresa de seguridad otorgada por el Ministerio de Seguridad de la
+                provincia de Córdoba.</p>
+            <p>Nuestro objetivo se fundamenta en la prestación de servicios de alta confiabilidad, considerando en todo
+                momento los requerimientos y circunstancias concretas de cada uno de nuestros clientes para adaptarnos a
+                sus
+                necesidades reales.
+                Siguiendo un protocolo en el cual se elige el personal requerido en concordancia con los requerimientos
+                del trabajo y se deja registrado el procedimiento según el objetivo de seguridad.
+                Todo lo planteado anteriormente cuenta con flexibilidad para realizar cambios en el servicio si es
+                requerido.</p>
+        </div>
+
+        <!-- Propuesta economica -->
+        <div style="margin-bottom: 20px;">
+            <label for="service">Propuesta económica:</label>
+            <select id="service" class="inline-input" style="display: inline-block; width: 215px;" required>
+                <option value="" disabled selected>Selecciona un servicio</option>
+                <option value="Servicio de limpieza integral">Servicio de limpieza integral</option>
+                <option value="Servicio mantenimiento general">Servicio mantenimiento general</option>
+                <option value="Servicio de parquización">Servicio de parquización</option>
+                <option value="Servicio de seguridad">Servicio de seguridad</option>
+            </select>
+
+            <label for="address" style="display: inline-block; margin-left: 10px;">en la dirección:</label>
+            <textarea id="address" class="inline-input" rows="1" style="display: inline-block; width: 300px;"
+                oninput="autoExpand(this)" required></textarea>
+        </div>
+        <br>
+
+        <p id="introSeguridad">
+            ➢MEDIOS HUMANOS: Personal formado. Nuestro servicio es constante, reemplazos por
+            ausencias, etc.
+            ➢ SUPERVISION: Nuestros supervisores cuentan con medios de comunicación para mantenerse en contacto
+            continuo y directo con el operario de seguridad, cliente, área de gerencia y recursos humanos para
+            gestionar la prestación del servicio.
+            ➢ UNIFORME DE TRABAJO: Proveemos uniformes de trabajo y elementos de seguridad de primera calidad,
+            para nuestro personal que presta servicios, para cada estación del año (adaptándose según el clima).
+            ➢ SALARIOS: Presupuestamos tomando en consideración la escala salarial que rige nuestra actividad en la
+            zona geográfica donde desarrollemos nuestras tareas. Queremos destacar que CORSACOR División
+            Seguridad, cumple con todas las disposiciones legales, previsionales y laborales aplicables a la actividad
+            que desempeña, eximiendo al cliente de cualquier riesgo laboral.
+            ➢ MEDIOS TECNICOS: Insumos, Equipos, e Implementos: Esta área está a cargo de personal especializado.
+            Se ocupa de que estén en óptimas condiciones de funcionamiento para el desarrollo de las tareas
+            programadas por nuestra área operativa.
+            ➢ CALIDAD: Implementaremos un sistema de gestión de calidad, buscando con ello la máxima objetividad
+            en el control del servicio y ofrecer al cliente un sistema de seguimiento de la contratación.
+            El control de calidad se realiza sobre dos niveles: Control de satisfacción del cliente y Control de los
+            servicios de vigilancia física prestados por el vigilador
+        </p>
+        <br>
+
+        <label for="aPartirDe" style="display: inline-block; margin-left: 10px;">A partir de:</label>
+        <textarea id="aPartirDe" class="inline-input" rows="1" style="display: inline-block; width: 300px;"
+            oninput="autoExpand(this)" required></textarea>
+
+        <div id="tablas">
+
+            <div class="table-container">
+                <table id="tabla1">
+                    <thead>
+                        <tr>
+                            <th>Cantidad</th>
+                            <th>Objetivo</th>
+                            <th>Días</th>
+                            <th>Horario</th>
+                            <th>Hs. Diurnas</th>
+                            <th>Hs. Nocturnas</th>
+                            <th>Total por Día</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td id="td1" contenteditable="true">N°</td>
+                            <td id="td2" contenteditable="true">-----</td>
+                            <td id="td3" contenteditable="true">-----</td>
+                            <td id="td4" contenteditable="true">--:-- a --:--</td>
+                            <td id="td5" contenteditable="true">-----</td>
+                            <td id="td6" contenteditable="true">-----</td>
+                            <td id="td7" contenteditable="true">-----</td>
+                        </tr>
+                        <tr class="highlight">
+                            <td id="td8" colspan="4">HORAS SEMANALES</td>
+                            <td id="td9" colspan="3" contenteditable="true">-----</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="table-container">
+                <table id="tabla2">
+                    <thead>
+                        <tr>
+                            <th>Mes</th>
+                            <th>Valor Hora</th>
+                            <th>Costo Mensual (30 días)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td contenteditable="true">A partir de (mes)</td>
+                            <td contenteditable="true">$-----</td>
+                            <td contenteditable="true">$----- Más IVA</td>
+                        </tr>
+                        <tr>
+                            <td contenteditable="true">A partir de (mes) hasta nueva paritaria</td>
+                            <td contenteditable="true">$-----</td>
+                            <td contenteditable="true">$----- Más IVA</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <br>
+
+        <button id="tablaEstatica" onclick="makeTableStatic()">Finalizar edición</button>
+        <br>
+
+        <div id="budget_list">
+            <!-- Aquí se agregará la tabla dinámica por la función addItemSeguridad -->
+        </div>
+
+        <br>
+        <div id="equipment-text">
+            <p>Si por razones del servicio se debiera trabajar en horario nocturno y días feriados, se le incrementaran
+                los recargos
+                de ley correspondiente.
+                La presente cotización está realizada en base a las escalas salariales vigentes del Gremio S.U.V.I.C.O.,
+                quedando
+                sin variantes, en tanto y en cuanto no se produzcan modificaciones en las mismas </p>
+        </div>
+
+        <!-- Mensaje de despedida -->
+        <p>Esperamos que el presente presupuesto se ajuste a sus necesidades y sea de su interés. Estamos a su
+            disposición por cualquier consulta, aclaración o modificación del mismo.</p>
+
+        <!-- Contacto final alineado a la derecha -->
+        <div class="right">
+            <p id="footer-text">
+                Sandra Córdoba<br>
+                Área Comercial<br>
+                Tel: 351-2049880
+            </p>
+        </div>
+
+        <!-- Lista y botones -->
+        <ul id="budget-list"></ul>
+
+        <!-- Botones para interactividad -->
+        <button id="aceptar-button" onclick="addItemSeguridad()">Aceptar</button>
+        <button id="borrar-button" onclick="deleteItemSeguridad()">Borrar</button>
+        <button id="generar-pdf-button" onclick="generatePDFseguridad()">Generar .PDF</button>
+
+        <!-- Contenedor para el mensaje -->
+        <div id="message"></div>
+    </div>
+
+    <!-- Script de funciones -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.2/html2pdf.bundle.min.js"></script>
+
+
+    <script>
+        function autoExpand(element) {
+            // Ajustar el tamaño del textarea de acuerdo a su contenido
+            element.style.height = 'auto';
+            element.style.height = (element.scrollHeight) + 'px';
+        }
+
+        function generatePDF() {
+            // Ajusta el estilo del destinatario para el PDF
+            const recipient = document.getElementById('recipient');
+            recipient.style.marginTop = '20px';
+
+            const element = document.body;
+
+            // Opciones de html2pdf para ajustar el margen y otros parámetros
+            const opt = {
+                margin: [10, 0, 0, 0],  // Márgenes superiores, derechos, inferiores, izquierdos
+                filename: 'presupuesto.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2 },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+
+            // Generar el PDF
+            html2pdf().from(element).set(opt).save()
+                .then(() => {
+                    // Restaurar el estilo original después de la generación del PDF
+                    recipient.style.marginTop = '0';
+                });
+        }
+    </script>
+    <script src="renderer.js" defer></script>
+
+</body>
+
+</html>

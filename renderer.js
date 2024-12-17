@@ -1,16 +1,25 @@
 const { ipcRenderer } = require('electron');
-const { jsPDF } = require('jspdf');
+const { jsPDF } = require('jspdf'); // Asegúrate de usar solo esta línea
 const path = require('path');
 const fs = require('fs');
-const { setFontAndSize } = require('pdf-lib');
+require('jspdf-autotable'); // Cargar la extensión de autotable
+const doc = new jsPDF();
 
 if (!ipcRenderer) {
     console.error('ipcRenderer no está disponible. Asegúrate de que está cargado correctamente.');
 }
 
+document.querySelectorAll('.hours, .personnel').forEach(input => {
+    if (!input.value) {
+        input.value = '0';  // Asignar un valor por defecto si está vacío
+    }
+});
+
+
 // Lista de insumos
 const insumos = [
-    "Con respecto a los insumos, los mismos están incluídos en el costo del presupuesto, con excepción de insumos especiales",
+    "Con respecto a los insumos, los mismos están incluídos en el costo del presupuesto, con excepción de insumos especiales, como papel higiénico, toallas de mano, ceras, etc. En caso de solicitarlos se facturarán por separado.",
+    "Con respecto a los insumos no están incluídos en el costo del presupuesto. En caso de solicitarlos se facturarán por separado.",
     "Con respecto a los insumos, de común acuerdo, los mismos quedarán a cargo del cliente.",
     "Alcohol Etílico (1lt)",
     "Aromatizador/Odorante Aer.",
@@ -150,7 +159,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 });
 
-
 // Función para obtener insumos desde el proceso principal
 async function getInsumos() {
     try {
@@ -196,51 +204,137 @@ function makeTableStatic() {
     alert('La tabla ahora es estática.');
 }
 
-// Actualiza la función addItem
+function generateDayInputs() {
+    const formContainer = document.getElementById('horas-semanales-form');
+    if (!formContainer) {
+        console.warn('El contenedor horas-semanales-form no existe en el DOM');
+        return; // Sale de la función si el contenedor no existe
+    }
+
+    if (formContainer.querySelectorAll('input[type="checkbox"]').length === 0) {
+        const days = ['lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado', 'domingo'];
+
+        days.forEach(day => {
+            const div = document.createElement('div');
+
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.id = `dia-${day}`;
+            checkbox.name = 'dias';
+            checkbox.value = day;
+
+            const horasInput = document.createElement('input');
+            horasInput.type = 'number';
+            horasInput.id = `horas-${day}`;
+            horasInput.name = `horas-${day}`;
+            horasInput.placeholder = `Horas de ${day}`;
+
+            const empleadosInput = document.createElement('input');
+            empleadosInput.type = 'number';
+            empleadosInput.id = `empleados-${day}`;
+            empleadosInput.name = `empleados-${day}`;
+            empleadosInput.placeholder = `Empleados para ${day}`;
+
+            div.appendChild(checkbox);
+            div.appendChild(horasInput);
+            div.appendChild(empleadosInput);
+
+            formContainer.appendChild(div);
+        });
+    }
+}
+
 function addItemMensual() {
     const date = document.getElementById('date').value;
     const recipient = document.getElementById('recipient').value;
     const serviceSelect = document.getElementById('service').value;
     const addressInput = document.getElementById('address').value;
-    
-    // Obtén las horas diarias y semanales
-    const hoursInput = document.getElementById('hoursPerDay').value;
-    const weeklyHoursInput = document.getElementById('weeklyHours').value;
-    
-    // Obtén los días seleccionados y conviértelos en una lista de nombres separados por comas
-    const dayCheckboxes = document.querySelectorAll('.dayCheckbox:checked');
-    const selectedDays = Array.from(dayCheckboxes).map(checkbox => checkbox.parentElement.textContent.trim()).join(', ');
 
     const tasks = document.getElementById('tasks').value;
     const supplies = document.getElementById('insumos-seleccionados').value;
     const validity = document.getElementById('validity').value;
     const payment = document.getElementById('payment').value;
+    const escala = document.getElementById('escala').value;
     const budgetList = document.getElementById('budget-list');
 
-    budgetList.innerHTML = ''; // Limpiar la lista anterior antes de añadir nuevos elementos
+    // Capturar los valores de los inputs dentro de la tabla
+    const lunes = document.getElementById('input-lunes').value || 0;
+    const martes = document.getElementById('input-martes').value || 0;
+    const miercoles = document.getElementById('input-miercoles').value || 0;
+    const jueves = document.getElementById('input-jueves').value || 0;
+    const viernes = document.getElementById('input-viernes').value || 0;
+    const sabado = document.getElementById('input-sabado').value || 0;
+    const domingo = document.getElementById('input-domingo').value || 0;
 
+    // Capturar los valores de los inputs fuera de la tabla
+    const diasSemanales = document.getElementById('dias-semanales-input').value || 0;
+    const horasSemanales = document.getElementById('horas-semanales').value || 0;
+    const numOperarios = document.getElementById('operarios').value || 0;
+
+    // Generar el contenido de la tabla con los valores ingresados
+    const tableContent = `
+        <div class="table-inputs-wrapper">
+            <div class="unique-table-container">
+                <table id="weekly-hours-table">
+                    <thead>
+                        <tr>
+                            <th>L</th>
+                            <th>M</th>
+                            <th>M</th>
+                            <th>J</th>
+                            <th>V</th>
+                            <th>S</th>
+                            <th>D</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><input type="number" id="input-lunes" class="hours" value="${lunes}" placeholder="0" min="0"> hs</td>
+                            <td><input type="number" id="input-martes" class="hours" value="${martes}" placeholder="0" min="0"> hs</td>
+                            <td><input type="number" id="input-miercoles" class="hours" value="${miercoles}" placeholder="0" min="0"> hs</td>
+                            <td><input type="number" id="input-jueves" class="hours" value="${jueves}" placeholder="0" min="0"> hs</td>
+                            <td><input type="number" id="input-viernes" class="hours" value="${viernes}" placeholder="0" min="0"> hs</td>
+                            <td><input type="number" id="input-sabado" class="hours" value="${sabado}" placeholder="0" min="0"> hs</td>
+                            <td><input type="number" id="input-domingo" class="hours" value="${domingo}" placeholder="0" min="0"> hs</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="unique-inputs-container">
+                <label for="dias-semanales">Días semanales:
+                    <input type="number" id="dias-semanales-input" value="${diasSemanales}" min="0" placeholder="0"></label>
+                <label for="horas-semanales">Horas semanales:
+                    <input type="number" id="horas-semanales" value="${horasSemanales}" min="0" placeholder="0"></label>
+                <label for="num-operarios">Operarios:
+                    <input type="number" id="num-operarios" value="${numOperarios}" min="0" placeholder="0"></label>
+            </div>
+        </div>
+    `;
+
+    // Limpia y actualiza el contenido del presupuesto
+    budgetList.innerHTML = '';
     budgetList.innerHTML += `
       <p>Fecha: ${date}</p>
       <p>Destinatario: ${recipient}</p>
       <p>Nos es grato presentarles nuestra empresa que se destaca por la calidad de los servicios, ofreciendo servicios de limpieza, desinfección y mantenimiento integral.</p>
       <p>CORSACOR (Corporación de soluciones ambientales Córdoba S.A.S. - C.U.I.T. Nº 3071655148-9) permite ofrecer un servicio totalmente organizado, controlado y eficiente. Nuestro objetivo se fundamenta en la prestación de servicios de alta calidad, considerando en todo momento los requerimientos y circunstancias concretas de cada uno de nuestros clientes para adaptarnos a sus necesidades reales.</p>
-      <p>Servicio: ${serviceSelect}</p>
+      <p>Propuesta económica: ${serviceSelect}</p>
       <p>Domicilio: ${addressInput}</p>
-      <p>Días a trabajar: ${selectedDays}</p>
-      <p>Horas por día: ${hoursInput}</p>
-      <p>Horas semanales: ${weeklyHoursInput}</p>
+      <p>Días y horarios:</p>
+      ${tableContent}
       <p>Tareas: ${tasks}</p>
       <p>Insumos: ${supplies}</p>
       <p>Funcionamiento de equipos, maquinarias, herramientas e implementos: En óptimas condiciones de funcionamiento para el desarrollo de las tareas programadas por nuestra área operativa.</p>
       <p>Vigencia: ${validity}</p>
       <p>Costo: ${payment}</p>
-      <p>En todos nuestros servicios nos comprometemos y ofrecemos:<p>
+      <p>${escala}</p>
+      <p>En todos nuestros servicios nos comprometemos y ofrecemos:</p>
       <p>-> Supervisión continua -> uniformes y elementos de protección personal -> cronograma y planificación detallada de limpieza de todos los espacios comunes del edificio -> traslados y reemplazos -> personal capacitado y entrenado en procesos y tareas requeridas </p>
       <p id="saludoFinal">Esperamos que el presente presupuesto se ajuste a sus necesidades y sea de su interés. Estamos a su disposición por cualquier consulta, aclaración o modificación del mismo.</p>
       <p style="text-align:right">Sandra Córdoba<br>Área Comercial<br>Tel: 351-2049880</p>
     `;
 }
-
 
 function addItemEventual() {
     const date = document.getElementById('date').value;
@@ -267,6 +361,7 @@ function addItemEventual() {
       <p>Funcionamiento de equipos, maquinarias, herramientas e implementos: En óptimas condiciones de funcionamiento para el desarrollo de las tareas programadas por nuestra área operativa.</p>
       <p>Vigencia: ${validity}</p>
       <p>Costo: ${payment}</p>
+      <p>En todos nuestros servicios nos comprometemos y ofrecemos:<p>
       <p>La forma de pago es abonando el 50% del total al inicio del trabajo, y el 50% restante al finalizar el mismo.</p>
       <p id="saludoFinal">Esperamos que el presente presupuesto se ajuste a sus necesidades y sea de su interés. Estamos a su disposición por cualquier consulta, aclaración o modificación del mismo.</p>
       <p style="text-align:right">Sandra Córdoba<br>Área Comercial<br>Tel: 351-2049880</p>
@@ -355,6 +450,8 @@ function addItemFinalDeObra() {
       <p>Insumos: ${supplies}</p>
       <p>Funcionamiento de equipos, maquinarias, herramientas e implementos: En óptimas condiciones de funcionamiento para el desarrollo de las tareas programadas por nuestra área operativa.</p>
       <p>Vigencia: ${validity}</p>
+      <p>En todos nuestros servicios nos comprometemos y ofrecemos:<p>
+      <p>-> Supervición continua -> uniformes y elementos de protección personal -> cronograma y planificación detallada de limpieza de todos los espacios comunes del edificio -> traslados y reemplazos -> personal capacitado y entrenado en procesos y tareas requeridas </p>
       <p>Costo: ${payment}</p>
       <p>La forma de pago es abonando el 50% del total al inicio del trabajo, y el 50% restante al finalizar el mismo.</p>
       <p id="saludoFinal">Esperamos que el presente presupuesto se ajuste a sus necesidades y sea de su interés. Estamos a su disposición por cualquier consulta, aclaración o modificación del mismo.</p>
@@ -362,32 +459,38 @@ function addItemFinalDeObra() {
     `;
 }
 
-// Función para borrar la lista y los campos de entrada
+// Función borrar lista 
 function deleteItemMensual() {
+    // Vaciar los valores de los inputs
     document.getElementById('date').value = '';
     document.getElementById('recipient').value = '';
     document.getElementById('service').value = '';
     document.getElementById('address').value = '';
-    
-    // Restablece horas diarias y semanales
-    document.getElementById('hoursPerDay').value = '';
-    document.getElementById('weeklyHours').value = '';
-
-    // Restablece los días seleccionados
-    const dayCheckboxes = document.querySelectorAll('.dayCheckbox');
-    dayCheckboxes.forEach(checkbox => checkbox.checked = false);
-
     document.getElementById('tasks').value = '';
     document.getElementById('insumos-seleccionados').value = '';
     document.getElementById('validity').value = '';
     document.getElementById('payment').value = '';
 
+    // Restablecer los días seleccionados
+    const dayCheckboxes = document.querySelectorAll('input[name="dias"]:checked');
+    dayCheckboxes.forEach(checkbox => checkbox.checked = false);  // Desmarcar los checkboxes
+
+    // Restablecer horas y empleados de cada día
+    const horasInputs = document.querySelectorAll('input[id^="horas-"]');
+    const empleadosInputs = document.querySelectorAll('input[id^="empleados-"]');
+
+    horasInputs.forEach(input => input.value = ''); // Vaciar horas
+    empleadosInputs.forEach(input => input.value = ''); // Vaciar empleados
+
     // Limpia la lista del presupuesto
     const budgetList = document.getElementById('budget-list');
-    budgetList.innerHTML = '';
+    budgetList.innerHTML = '';  // Limpiar el contenido generado
+
+    // Si deseas ocultar los checkboxes e inputs generados, puedes hacer esto:
+    // (por ejemplo, puedes restaurar la visibilidad del formulario si está oculto)
+    document.getElementById('horas-semanales-form').style.display = 'block';  // Asegurarse de que el formulario esté visible
 }
 
-// Función para borrar la lista y los campos de entrada
 function deleteItemEventual() {
     document.getElementById('date').value = '';
     document.getElementById('recipient').value = '';
@@ -411,6 +514,8 @@ function deleteItemEventual() {
       <p>Insumos: ${supplies}</p>
       <p>Funcionamiento de equipos, maquinarias, herramientas e implementos: En óptimas condiciones de funcionamiento para el desarrollo de las tareas programadas por nuestra área operativa.</p>
       <p>Vigencia: ${validity}</p>
+      <p>En todos nuestros servicios nos comprometemos y ofrecemos:<p>
+      <p>-> Supervición continua -> uniformes y elementos de protección personal -> cronograma y planificación detallada de limpieza de todos los espacios comunes del edificio -> traslados y reemplazos -> personal capacitado y entrenado en procesos y tareas requeridas </p>
       <p>Costo: ${payment}</p>
       <p>La forma de pago es abonando el 50% del total al inicio del trabajo, y el 50% restante al finalizar el mismo.</p>
       <p id="saludoFinal">Esperamos que el presente presupuesto se ajuste a sus necesidades y sea de su interés. Estamos a su disposición por cualquier consulta, aclaración o modificación del mismo.</p>
@@ -418,7 +523,6 @@ function deleteItemEventual() {
     `;
 }
 
-// Función para borrar la lista y los campos de entrada
 function deleteItemSeguridad() {
     document.getElementById('date').value = '';
     document.getElementById('recipient').value = '';
@@ -476,7 +580,6 @@ function deleteItemSeguridad() {
   `;
 }
 
-// Función para borrar la lista y los campos de entrada
 function deleteItemFinalDeObra() {
     document.getElementById('date').value = '';
     document.getElementById('recipient').value = '';
@@ -499,6 +602,8 @@ function deleteItemFinalDeObra() {
       <p>Insumos: ${supplies}</p>
       <p>Funcionamiento de equipos, maquinarias, herramientas e implementos: En óptimas condiciones de funcionamiento para el desarrollo de las tareas programadas por nuestra área operativa.</p>
       <p>Vigencia: ${validity}</p>
+      <p>En todos nuestros servicios nos comprometemos y ofrecemos:<p>
+      <p>-> Supervición continua -> uniformes y elementos de protección personal -> cronograma y planificación detallada de limpieza de todos los espacios comunes del edificio -> traslados y reemplazos -> personal capacitado y entrenado en procesos y tareas requeridas </p>
       <p>Costo: ${payment}</p>
       <p>La forma de pago es abonando el 50% del total al inicio del trabajo, y el 50% restante al finalizar el mismo.</p>
       <p id="saludoFinal">Esperamos que el presente presupuesto se ajuste a sus necesidades y sea de su interés. Estamos a su disposición por cualquier consulta, aclaración o modificación del mismo.</p>
@@ -506,22 +611,30 @@ function deleteItemFinalDeObra() {
     `;
 }
 
-// Función para cargar una imagen desde una ruta
+// Función para cargar una imagen desde una ruta y convertirla a Base64
 async function loadImage(src) {
     return new Promise((resolve, reject) => {
         const img = new Image();
         img.src = src;
-        img.onload = () => resolve(img);
+        img.crossOrigin = "Anonymous"; // Necesario si la imagen está alojada externamente
+        img.onload = () => {
+            const canvas = document.createElement('canvas');
+            canvas.width = img.width;
+            canvas.height = img.height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0);
+            const base64Image = canvas.toDataURL('image/png'); // Convierte a Base64
+            resolve(base64Image);
+        };
         img.onerror = (error) => reject(error);
     });
 }
 
 async function generatePDFmensual() {
     try {
+
         // Solicitar al proceso principal que abra el diálogo de guardar archivo
         const filePath = await ipcRenderer.invoke('dialog:saveFile');
-
-        // Verificar si el usuario canceló el diálogo
         if (!filePath) {
             console.log('Guardado cancelado.');
             return;
@@ -532,93 +645,203 @@ async function generatePDFmensual() {
         let counter = 1;
 
         while (fs.existsSync(finalPath)) {
-            // Crear un nuevo nombre basado en el contador
             const { dir, name, ext } = path.parse(filePath);
             finalPath = path.join(dir, `${name}(${counter})${ext}`);
             counter++;
         }
 
-        const imgData = await loadImage(path.join(__dirname, 'NUEVO FORMULARIO EVENTUAL(1)(1).pdf.png'));
         const doc = new jsPDF();
 
-        // Establecer fuente
+        // Cargar la imagen de fondo
+        const backgroundImage = await loadImage('NUEVO FORMULARIO.png');
+        const pageWidth = doc.internal.pageSize.width;
+        const pageHeight = doc.internal.pageSize.height;
+
+        // Agregar la imagen de fondo
+        doc.addImage(backgroundImage, 'PNG', 0, 0, pageWidth, pageHeight);
+
+        // Configurar fuente
+        const fontSize = 10;
         doc.setFont('Cambria', 'italic');
-        doc.setFontSize(10);
+        doc.setFontSize(fontSize);
 
-        // Añadir la imagen al PDF
-        doc.addImage(imgData, 'PNG', 0, 0, doc.internal.pageSize.width, doc.internal.pageSize.height);
-
-        const yOffsetStart = 45;  // Ajuste inicial para bajar los elementos
-        const lineSpacing = 6;     // Espacio entre cada línea de texto
-        const yOffsetBottom = 30;  // Margen inferior
-        const maxWidth = doc.internal.pageSize.width - 40; // Ancho máximo para el texto
-        let yOffset = yOffsetStart; // Posición vertical inicial
+        const yOffsetStart = 45;
+        const lineSpacing = 4.5; // Reducir el interlineado
+        const maxWidth = doc.internal.pageSize.width - 40;
+        let yOffset = yOffsetStart;
 
         // Obtener los valores de los inputs
         const date = document.getElementById('date').value;
         const recipient = document.getElementById('recipient').value;
         const serviceSelect = document.getElementById('service').value;
         const addressInput = document.getElementById('address').value;
-        const hoursInput = document.getElementById('hoursPerDay').value;
-        const weeklyHoursInput = document.getElementById('weeklyHours').value;
         const tasks = document.getElementById('tasks').value;
         const supplies = document.getElementById('insumos-seleccionados').value;
         const validity = document.getElementById('validity').value;
         const payment = document.getElementById('payment').value;
+        const escala = document.getElementById('escala').value;
 
-        // Obtener los días seleccionados
-        const selectedDays = Array.from(document.querySelectorAll('.dayCheckbox:checked'))
-            .map(checkbox => checkbox.value)
-            .join(', ');
+        // Calcular las horas semanales
+        const daysInput = Array.from(document.querySelectorAll('input[type="checkbox"][name="dias"]:checked'));
+        let weeklyHours = 0;
+        const daysDetails = [];
+
+        daysInput.forEach((checkbox) => {
+            const day = checkbox.value;
+            const hours = parseInt(document.getElementById(`horas-${day}`).value, 10) || 0;
+            const employees = parseInt(document.getElementById(`empleados-${day}`).value, 10) || 0;
+
+            const totalDayHours = hours * employees;
+            weeklyHours += totalDayHours;
+
+            // Guardar detalles para el PDF
+            daysDetails.push(`${day.charAt(0).toUpperCase() + day.slice(1)}: ${hours}h por ${employees} empleados (${totalDayHours}h total)`);
+        });
+
+        // Obtener y formatear la fecha
+        const rawDate = document.getElementById('date').value; // Valor en formato 'aaaa-mm-dd'
+        let formattedDate = '';
+        if (rawDate) {
+            const [year, month, day] = rawDate.split('-'); // Dividir el formato ISO
+            formattedDate = `${day}/${month}/${year}`; // Reorganizar al formato 'dd/mm/aaaa'
+        }
 
         // Alineación derecha para la fecha
-        doc.setFontSize(10); // Establecer tamaño de fuente a 10
-        doc.text(` ${date}`, doc.internal.pageSize.width - 20, yOffset, { align: "right" });
+        doc.text(`Córdoba, ${formattedDate}`, doc.internal.pageSize.width - 20, yOffset, { align: "right" });
         yOffset += lineSpacing;
 
         // Texto justificado
         const justifyText = (text, yOffset) => {
             const lines = doc.splitTextToSize(text, maxWidth);
-            lines.forEach(line => {
+            lines.forEach((line) => {
                 doc.text(line, 20, yOffset);
                 yOffset += lineSpacing;
             });
-            return yOffset; // Devuelve la nueva posición vertical
+            return yOffset;
         };
+        yOffset = justifyText(`Estimados/as Sres.:`, yOffset);
 
-        yOffset = justifyText(`${recipient}:`, yOffset);
-        yOffset = justifyText(`Nos es grato presentarles nuestra empresa que se destaca por la calidad de los servicios, ofreciendo servicios de limpieza, desinfección y mantenimiento integral.`, yOffset);
-        yOffset = justifyText(`CORSACOR (Corporación de soluciones ambientales Córdoba S.A.S. - C.U.I.T. Nº 3071655148-9) permite ofrecer un servicio totalmente organizado, controlado y eficiente. Nuestro objetivo se fundamenta en la prestación de servicios de alta calidad, considerando en todo momento los requerimientos y circunstancias concretas de cada uno de nuestros clientes para adaptarnos a sus necesidades reales.`, yOffset);
+        // Cambiar a fuente negrita para el texto del input 'recipient'
+        doc.setFont('Cambria', 'bold');
+        yOffset = justifyText(`${recipient}`, yOffset);
+        // Volver a la fuente original para el resto del texto
+        doc.setFont('Cambria', 'italic');
+        yOffset += lineSpacing;
 
-        // Imprimir "PROPUESTA ECONÓMICA" y "En: dirección" en la misma línea
+        yOffset = justifyText(`   Nos es grato presentarles nuestra empresa que se destaca por la calidad de los servicios, ofreciendo servicios de limpieza, desinfección y mantenimiento integral.`, yOffset);
+        yOffset = justifyText(`   CORSACOR (Corporación de soluciones ambientales Córdoba S.A.S. - C.U.I.T. Nº 3071655148-9) permite ofrecer un servicio totalmente organizado, controlado y eficiente.`, yOffset);
+        yOffset = justifyText(`   Nuestro objetivo se fundamenta en la prestación de servicios de alta calidad, considerando en todo momento los requerimientos y circunstancias concretas de cada uno de nuestros clientes para adaptarnos a sus necesidades reales.`, yOffset);
+        yOffset += lineSpacing;
+
+
         const proposalLine = `- PROPUESTA ECONÓMICA: ${serviceSelect}, En: ${addressInput}.`;
+
+        // Cambiar a fuente negrita para el texto de los inputs de sevicio y domicilio'
+        doc.setFont('Cambria', 'bold');
         yOffset = justifyText(proposalLine, yOffset);
+        // Volver a la fuente original para el resto del texto
+        doc.setFont('Cambria', 'italic');
+        yOffset += lineSpacing;
+        doc.setFont('Cambria', 'bold');
+        yOffset = justifyText(`- DIAS Y HORAS A REALIZAR:`, yOffset);
+        doc.setFont('Cambria', 'italic');
 
-        // Imprimir los días seleccionados
-        const daysLine = `Días: ${selectedDays}.`;
-        yOffset = justifyText(daysLine, yOffset);
+        // Obtener valores de los días de la semana
+        const lunes = document.getElementById('input-lunes')?.value || '0';
+        const martes = document.getElementById('input-martes')?.value || '0';
+        const miercoles = document.getElementById('input-miercoles')?.value || '0';
+        const jueves = document.getElementById('input-jueves')?.value || '0';
+        const viernes = document.getElementById('input-viernes')?.value || '0';
+        const sabado = document.getElementById('input-sabado')?.value || '0';
+        const domingo = document.getElementById('input-domingo')?.value || '0';
 
-        // Imprimir "HORAS A TRABAJAR" y "HORAS SEMANALES" en la misma línea
-        const hoursLine = `- HORAS A TRABAJAR POR DÍA: ${hoursInput}hs, HORAS SEMANALES: ${weeklyHoursInput}hs.`;
-        yOffset = justifyText(hoursLine, yOffset);
+        // Calcular días semanales y horas semanales
+        const diasSemanales = [lunes, martes, miercoles, jueves, viernes, sabado, domingo].filter(horas => horas > 0).length; // Número de días con horas mayores a 0
+        const horasSemanales = [lunes, martes, miercoles, jueves, viernes, sabado, domingo]
+            .map(hora => parseInt(hora) || 0) // Convertir a número y reemplazar valores no numéricos con 0
+            .reduce((acc, curr) => acc + curr, 0); // Sumar todas las horas
 
-        yOffset = justifyText(`- TAREAS A REALIZAR: ${tasks}`, yOffset);
-        yOffset = justifyText(`- INSUMOS: ${supplies}`, yOffset);
+        // Obtener valor de "Operarios"
+        const operarios = document.getElementById('operarios')?.value || '0';
 
-        doc.setFontSize(11); // Volver al tamaño de fuente normal
-        yOffset = justifyText(`- FUNCIONAMIENTO DE EQUIPOS. MAQUINARIAS, HERRAMIENTAS E IMPLEMENTOS: En óptimas condiciones de funcionamiento para el desarrollo de las tareas programadas por nuestra área operativa.`, yOffset);
+        // Dibujar la tabla con autoTable alineada a la izquierda
+        doc.autoTable({
+            startY: yOffset,
+            head: [['L', 'M', 'M', 'J', 'V', 'S', 'D']],
+            body: [[lunes, martes, miercoles, jueves, viernes, sabado, domingo]],
+            styles: {
+                fontSize: 10,
+                halign: 'center',
+                cellPadding: 2,
+                cellWidth: 10,
+            },
+            headStyles: {
+                fillColor: [255, 165, 0],
+                textColor: [255, 255, 255],
+                fontStyle: 'bold',
+            },
+            bodyStyles: {
+                textColor: [0, 0, 0],
+            },
+            margin: { left: 20, right: 100 }, // Espacio para los inputs a la derecha
+        });
+
+        // Posición para los inputs a la derecha de la tabla
+        let inputX = 140;
+        let inputY = yOffset + 0;
+
+        // Actualizar yOffset para continuar después de la tabla
+        yOffset = doc.lastAutoTable.finalY + 10; // Añadir un pequeño espacio después de la tabla
+
+        // Los inputs de Días semanales, Horas semanales y Operarios a la derecha de la tabla
+        doc.setFont('Cambria', 'bold');
+        doc.text(`Días semanales: ${diasSemanales}`, inputX, inputY);
+        inputY += 10;
+        doc.text(`Horas semanales: ${horasSemanales}`, inputX, inputY);
+        inputY += 10;
+        doc.text(`Operarios: ${operarios}`, inputX, inputY);
+        doc.setFont('Cambria', 'italic');
+
+        doc.setFont('Cambria', 'bold');
+        yOffset = justifyText(`- TAREAS A REALIZAR:`, yOffset);
+        doc.setFont('Cambria', 'italic');
+        yOffset = justifyText(`${tasks}`, yOffset);
+        yOffset += lineSpacing;
+
+        doc.setFont('Cambria', 'bold');
+        yOffset = justifyText(`- INSUMOS:`, yOffset);
+        doc.setFont('Cambria', 'italic');
+        yOffset = justifyText(`${supplies}`, yOffset);
+        yOffset += lineSpacing;
+
+        doc.setFont('Cambria', 'bold');
+        yOffset = justifyText(`- FUNCIONAMIENTO DE EQUIPOS, MAQUINARIAS, HERRAMIENTAS E IMPLEMENTOS:`, yOffset);
+        doc.setFont('Cambria', 'italic');
+        yOffset = justifyText('En óptimas condiciones de funcionamiento para el desarrollo de las tareas programadas por nuestra área operativa.', yOffset);
+        yOffset += lineSpacing;
+
+        // Aplicar negrita en "Dias de vigencia"
+        doc.setFont('Cambria', 'bold');
         yOffset = justifyText(`- DÍAS DE VIGENCIA DEL PRESUPUESTO: ${validity}.`, yOffset);
-        yOffset = justifyText(`En todos nuestros servicios nos comprometemos y ofrecemos:`, yOffset);
-        yOffset = justifyText(`-> Supervición continua -> uniformes y elementos de protección personal -> cronograma y planificación detallada de limpieza de todos los espacios comunes del edificio -> traslados y reemplazos -> personal capacitado y entrenado en procesos y tareas requeridas.`, yOffset);
-        yOffset += lineSpacing * 1;
+        doc.setFont('Cambria', 'italic');
+        yOffset += lineSpacing;
+
+        yOffset = justifyText('En todos nuestros servicios nos comprometemos y ofrecemos:', yOffset);
+        yOffset = justifyText('-> Supervición continua -> uniformes y elementos de protección personal -> cronograma y planificación detallada de limpieza de todos los espacios comunes del edificio -> traslados y reemplazos -> personal capacitado y entrenado en procesos y tareas requeridas.', yOffset);
+        yOffset += lineSpacing;
+
+        // Aplicar negrita en "Costo"
+        doc.setFont('Cambria', 'bold');
         yOffset = justifyText(`- COSTO: ${payment}`, yOffset);
-        yOffset += lineSpacing * 1;
+        doc.setFont('Cambria', 'italic');
+        yOffset += lineSpacing;
 
-        doc.setFontSize(10); // Volver al tamaño de fuente normal
-        yOffset = justifyText(`Esperamos que el presente presupuesto se ajuste a sus necesidades y sea de su interés. Estamos a su disposición por cualquier consulta, aclaración o modificación del mismo.`, yOffset);
+        yOffset = justifyText(`${escala}`, yOffset);
 
-        // Alineación derecha para contacto
-        doc.setFontSize(10); // Establecer tamaño de fuente a 10
+        doc.setFontSize(fontSize);
+        yOffset = justifyText(`Esperamos que el presente presupuesto se ajuste a sus necesidades y sea de su interés. Estamos a su disposición por cualquier consulta, aclaración o modificación del mismo. Atentamente.`, yOffset);
+
+        doc.setFont('Cambria', 'bold');
         doc.text(`Sandra Córdoba\nÁrea Comercial\nTel: 351-2049880`, doc.internal.pageSize.width - 20, yOffset, { align: "right" });
 
         // Guardar el PDF
@@ -628,8 +851,6 @@ async function generatePDFmensual() {
     }
 }
 
-
-// Función para generar el PDF
 async function generatePDFeventual() {
     try {
         // Solicitar al proceso principal que abra el diálogo de guardar archivo
@@ -652,7 +873,7 @@ async function generatePDFeventual() {
             counter++;
         }
 
-        const imgData = await loadImage(path.join(__dirname, 'NUEVO FORMULARIO EVENTUAL(1)(1).pdf.png'));
+        const imgData = await loadImage(path.join(__dirname, 'NUEVO FORMULARIO.png'));
         const doc = new jsPDF();
 
         // Establecer fuente
@@ -663,9 +884,9 @@ async function generatePDFeventual() {
         doc.addImage(imgData, 'PNG', 0, 0, doc.internal.pageSize.width, doc.internal.pageSize.height);
 
         const yOffsetStart = 45;  // Ajuste inicial para bajar los elementos
-        const lineSpacing = 6;     // Espacio entre cada línea de texto
-        const yOffsetBottom = 30;  // Margen inferior
-        const maxWidth = doc.internal.pageSize.width - 40; // Ancho máximo para el texto
+        const lineSpacing = 1;     // Espacio entre cada línea de texto
+        const yOffsetBottom = 10;  // Margen inferior
+        const maxWidth = doc.internal.pageSize.width - 20; // Ancho máximo para el texto
         let yOffset = yOffsetStart; // Posición vertical inicial
 
         // Obtener los valores de los inputs
@@ -678,9 +899,15 @@ async function generatePDFeventual() {
         const validity = document.getElementById('validity').value;
         const payment = document.getElementById('payment').value;
 
+        // Obtener y formatear la fecha
+        const rawDate = document.getElementById('date').value; // Valor en formato 'aaaa-mm-dd'
+        let formattedDate = '';
+        if (rawDate) {
+            const [year, month, day] = rawDate.split('-'); // Dividir el formato ISO
+            formattedDate = `${day}/${month}/${year}`; // Reorganizar al formato 'dd/mm/aaaa'
+        }
         // Alineación derecha para la fecha
-        doc.setFontSize(10); // Establecer tamaño de fuente a 12
-        doc.text(` ${date}`, doc.internal.pageSize.width - 20, yOffset, { align: "right" });
+        doc.text(` ${formattedDate}`, doc.internal.pageSize.width - 20, yOffset, { align: "right" });
         yOffset += lineSpacing;
 
         // Texto justificado
@@ -696,6 +923,7 @@ async function generatePDFeventual() {
         yOffset = justifyText(`${recipient}:`, yOffset);
         yOffset = justifyText(`Nos es grato presentarles nuestra empresa que se destaca por la calidad de los servicios, ofreciendo servicios de limpieza, desinfección y mantenimiento integral.`, yOffset);
         yOffset = justifyText(`CORSACOR (Corporación de soluciones ambientales Córdoba S.A.S. - C.U.I.T. Nº 3071655148-9) permite ofrecer un servicio totalmente organizado, controlado y eficiente. Nuestro objetivo se fundamenta en la prestación de servicios de alta calidad, considerando en todo momento los requerimientos y circunstancias concretas de cada uno de nuestros clientes para adaptarnos a sus necesidades reales.`, yOffset);
+        yOffset += lineSpacing * 1;
 
         // Imprimir "PROPUESTA ECONÓMICA" y "En: dirección" en la misma línea
         const proposalLine = `- PROPUESTA ECONÓMICA: ${serviceSelect}, En: ${addressInput}.`;
@@ -709,10 +937,12 @@ async function generatePDFeventual() {
         yOffset = justifyText(`- FUNCIONAMIENTO DE EQUIPOS. MAQUINARIAS, HERRAMIENTAS E IMPLEMENTOS: En óptimas condiciones de funcionamiento para el desarrollo de las tareas programadas por nuestra área operativa.`, yOffset);
 
         yOffset = justifyText(`- DÍAS DE VIGENCIA DEL PRESUPUESTO: ${validity}.`, yOffset);
+        yOffset += lineSpacing * 1;
 
-
+        yOffset = justifyText(`En todos nuestros servicios nos comprometemos y ofrecemos:`, yOffset);
         yOffset = justifyText(`-> Supervición continua -> uniformes y elementos de protección personal -> cronograma y planificación detallada de limpieza de todos los espacios comunes del edificio -> traslados y reemplazos -> personal capacitado y entrenado en procesos y tareas requeridas.`, yOffset);
         yOffset += lineSpacing * 1;
+
         yOffset = justifyText(`- COSTO: ${payment}`, yOffset);
         yOffset += lineSpacing * 1;
 
@@ -732,7 +962,6 @@ async function generatePDFeventual() {
     }
 }
 
-// Función para generar el PDF
 async function generatePDFseguridad() {
     try {
         // Solicitar al proceso principal que abra el diálogo de guardar archivo
@@ -755,7 +984,7 @@ async function generatePDFseguridad() {
             counter++;
         }
 
-        const imgData = await loadImage(path.join(__dirname, 'NUEVO FORMULARIO EVENTUAL(1)(1).pdf.png'));
+        const imgData = await loadImage(path.join(__dirname, 'NUEVO FORMULARIO.png'));
         const doc = new jsPDF();
 
         // Establecer fuente
@@ -770,6 +999,9 @@ async function generatePDFseguridad() {
         const yOffsetBottom = 30;  // Margen inferior
         const maxWidth = doc.internal.pageSize.width - 40; // Ancho máximo para el texto
         let yOffset = yOffsetStart; // Posición vertical inicial
+        yOffset += 1; // Ajusta este valor según necesites
+
+
 
         // Obtener los valores de los inputs
         const date = document.getElementById('date').value;
@@ -778,11 +1010,19 @@ async function generatePDFseguridad() {
         const addressInput = document.getElementById('address').value;
         const aPartirDe = document.getElementById('aPartirDe').value;
         const tabla = document.getElementById('tablas');
+        const tableData = [];
 
+
+        // Obtener y formatear la fecha
+        const rawDate = document.getElementById('date').value; // Valor en formato 'aaaa-mm-dd'
+        let formattedDate = '';
+        if (rawDate) {
+            const [year, month, day] = rawDate.split('-'); // Dividir el formato ISO
+            formattedDate = `${day}/${month}/${year}`; // Reorganizar al formato 'dd/mm/aaaa'
+        }
         // Alineación derecha para la fecha
-        doc.setFontSize(10); // Establecer tamaño de fuente a 12
-        doc.text(` ${date}`, doc.internal.pageSize.width - 20, yOffset, { align: "right" });
-        yOffset += lineSpacing * 1;
+        doc.text(` ${formattedDate}`, doc.internal.pageSize.width - 20, yOffset, { align: "right" });
+        yOffset += lineSpacing;
 
         // Texto justificado
         const justifyText = (text, yOffset) => {
@@ -822,50 +1062,51 @@ async function generatePDFseguridad() {
 
         yOffset = justifyText(`- A partir de: ${aPartirDe}`, yOffset);
 
-        // Configuración de la tabla con margen ajustado
-        yOffset += lineSpacing;
-        const rows = tabla.querySelectorAll('tr');
-        const cellPadding = 2;
-        const startX = 10; // Reducido para dejar más espacio en el margen derecho
-        const cellWidth = 28; // Ancho de celda ajustado
-        const rowHeight = 10; // Altura de fila
+        // Capturar datos de la primera tabla
+        const tabla1 = document.getElementById('tabla1');
+        const rows1 = tabla1.querySelectorAll('tr');
+        const tableData1 = [];
 
-        rows.forEach(row => {
-            let xPosition = startX;
+        rows1.forEach((row) => {
             const cells = row.querySelectorAll('td, th');
-
-            // Verificar si la fila cabe en la página, de lo contrario, agregar nueva página
-            if (yOffset + rowHeight > doc.internal.pageSize.height - 20) {
-                doc.addPage();
-                doc.addImage(imgData, 'PNG', 0, 0, doc.internal.pageSize.width, doc.internal.pageSize.height);
-                yOffset = yOffsetStart;
-            }
-
-            cells.forEach(cell => {
-                const text = cell.innerText || "";
-                const fontSize = text.length > 10 ? 6 : 7; // Ajustar tamaño de fuente dinámicamente
-                doc.setFontSize(fontSize);
-
-                const cellLines = doc.splitTextToSize(text, cellWidth - cellPadding * 2);
-
-                // Dibujar la celda
-                doc.rect(xPosition, yOffset, cellWidth, rowHeight);
-
-                // Calcular el punto de inicio vertical para centrar el texto
-                const textY = yOffset + rowHeight / 2 - (cellLines.length - 1) * lineSpacing / 2;
-
-                // Dibujar el texto centrado en la celda
-                cellLines.forEach((line, i) => {
-                    doc.text(line, xPosition + cellWidth / 2, textY + i * lineSpacing, { align: 'center' });
-                });
-
-                xPosition += cellWidth;
-            });
-
-            yOffset += rowHeight;
+            const rowData = Array.from(cells).map(cell => cell.textContent.trim());
+            tableData1.push(rowData);
         });
 
-        yOffset += lineSpacing * 2;
+        // Dibujar la primera tabla
+        doc.autoTable({
+            head: [tableData1[0]],
+            body: tableData1.slice(1),
+            startY: yOffset,
+            margin: { top: 10, left: 20, right: 20 },
+            styles: { fontSize: 10, cellPadding: 2, overflow: 'linebreak' },
+            headStyles: { fillColor: [255, 165, 0], textColor: [255, 255, 255] },
+        });
+
+        yOffset = doc.lastAutoTable.finalY + lineSpacing * 2;
+
+        // Capturar datos de la segunda tabla
+        const tabla2 = document.getElementById('tabla2');
+        const rows2 = tabla2.querySelectorAll('tr');
+        const tableData2 = [];
+
+        rows2.forEach((row) => {
+            const cells = row.querySelectorAll('td, th');
+            const rowData = Array.from(cells).map(cell => cell.textContent.trim());
+            tableData2.push(rowData);
+        });
+
+        // Dibujar la segunda tabla
+        doc.autoTable({
+            head: [tableData2[0]],
+            body: tableData2.slice(1),
+            startY: yOffset,
+            margin: { top: 10, left: 20, right: 20 },
+            styles: { fontSize: 10, cellPadding: 2, overflow: 'linebreak' },
+            headStyles: { fillColor: [255, 165, 0], textColor: [255, 255, 255] },
+        });
+
+        yOffset = doc.lastAutoTable.finalY + lineSpacing * 2;
 
         doc.setFontSize(10); // Volver al tamaño de fuente normal
         yOffset = justifyText(`- Si por razones del servicio se debiera trabajar en horario nocturno y días feriados, se le incrementaran los recargos de ley correspondiente.
@@ -886,7 +1127,6 @@ async function generatePDFseguridad() {
     }
 }
 
-// Función para generar el PDF
 async function generatePDFfinalObra() {
     try {
         // Solicitar al proceso principal que abra el diálogo de guardar archivo
@@ -909,7 +1149,7 @@ async function generatePDFfinalObra() {
             counter++;
         }
 
-        const imgData = await loadImage(path.join(__dirname, 'NUEVO FORMULARIO EVENTUAL(1)(1).pdf.png'));
+        const imgData = await loadImage(path.join(__dirname, 'NUEVO FORMULARIO.png'));
         const doc = new jsPDF();
 
         // Establecer fuente
@@ -935,9 +1175,15 @@ async function generatePDFfinalObra() {
         const validity = document.getElementById('validity').value;
         const payment = document.getElementById('payment').value;
 
+        // Obtener y formatear la fecha
+        const rawDate = document.getElementById('date').value; // Valor en formato 'aaaa-mm-dd'
+        let formattedDate = '';
+        if (rawDate) {
+            const [year, month, day] = rawDate.split('-'); // Dividir el formato ISO
+            formattedDate = `${day}/${month}/${year}`; // Reorganizar al formato 'dd/mm/aaaa'
+        }
         // Alineación derecha para la fecha
-        doc.setFontSize(10); // Establecer tamaño de fuente a 12
-        doc.text(` ${date}`, doc.internal.pageSize.width - 20, yOffset, { align: "right" });
+        doc.text(` ${formattedDate}`, doc.internal.pageSize.width - 20, yOffset, { align: "right" });
         yOffset += lineSpacing;
 
         // Texto justificado
@@ -953,6 +1199,7 @@ async function generatePDFfinalObra() {
         yOffset = justifyText(`${recipient}:`, yOffset);
         yOffset = justifyText(`Nos es grato presentarles nuestra empresa que se destaca por la calidad de los servicios, ofreciendo servicios de limpieza, desinfección y mantenimiento integral.`, yOffset);
         yOffset = justifyText(`CORSACOR (Corporación de soluciones ambientales Córdoba S.A.S. - C.U.I.T. Nº 3071655148-9) permite ofrecer un servicio totalmente organizado, controlado y eficiente. Nuestro objetivo se fundamenta en la prestación de servicios de alta calidad, considerando en todo momento los requerimientos y circunstancias concretas de cada uno de nuestros clientes para adaptarnos a sus necesidades reales.`, yOffset);
+        yOffset += lineSpacing * 1;
 
         // Imprimir "PROPUESTA ECONÓMICA" y "En: dirección" en la misma línea
         const proposalLine = `- PROPUESTA ECONÓMICA: ${serviceSelect}, En: ${addressInput}.`;
@@ -966,10 +1213,12 @@ async function generatePDFfinalObra() {
         yOffset = justifyText(`- FUNCIONAMIENTO DE EQUIPOS. MAQUINARIAS, HERRAMIENTAS E IMPLEMENTOS: En óptimas condiciones de funcionamiento para el desarrollo de las tareas programadas por nuestra área operativa.`, yOffset);
 
         yOffset = justifyText(`- DÍAS DE VIGENCIA DEL PRESUPUESTO: ${validity}.`, yOffset);
+        yOffset += lineSpacing * 1;
 
-
+        yOffset = justifyText(`En todos nuestros servicios nos comprometemos y ofrecemos:`, yOffset);
         yOffset = justifyText(`-> Supervición continua -> uniformes y elementos de protección personal -> cronograma y planificación detallada de limpieza de todos los espacios comunes del edificio -> traslados y reemplazos -> personal capacitado y entrenado en procesos y tareas requeridas.`, yOffset);
         yOffset += lineSpacing * 1;
+
         yOffset = justifyText(`- COSTO: ${payment}`, yOffset);
         yOffset += lineSpacing * 1;
 
@@ -989,22 +1238,113 @@ async function generatePDFfinalObra() {
     }
 }
 
-function calculateWeeklyHours() {
-    // Obtener el valor de horas por día
-    const hoursPerDay = parseInt(document.getElementById('hoursPerDay').value) || 0;
+function autoExpand(element) {
+    // Ajustar el tamaño del textarea de acuerdo a su contenido
+    element.style.height = 'auto';
+    element.style.height = (element.scrollHeight) + 'px';
+}
 
-    // Contar los días seleccionados
-    const dayCheckboxes = document.querySelectorAll('.dayCheckbox');
-    let daysSelected = 0;
-    dayCheckboxes.forEach(checkbox => {
-        if (checkbox.checked) {
-            daysSelected++;
-        }
+function generatePDF() {
+    // Ajusta el estilo del destinatario para el PDF
+    const recipient = document.getElementById('recipient');
+    recipient.style.marginTop = '20px';
+
+    const element = document.body;
+
+    // Opciones de html2pdf para ajustar el margen y otros parámetros
+    const opt = {
+        margin: [10, 0, 0, 0],  // Márgenes superiores, derechos, inferiores, izquierdos
+        filename: 'presupuesto.pdf',
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2 },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
+
+    // Generar el PDF
+    html2pdf().from(element).set(opt).save()
+        .then(() => {
+            // Restaurar el estilo original después de la generación del PDF
+            recipient.style.marginTop = '0';
+        });
+}
+
+function autoExpand(element) {
+    // Ajustar el tamaño del textarea de acuerdo a su contenido
+    element.style.height = 'auto';
+    element.style.height = (element.scrollHeight) + 'px';
+}
+
+document.getElementById('date').addEventListener('input', function () {
+    const inputDate = this.value; // Obtiene la fecha en formato yyyy-mm-dd
+
+    if (inputDate) {
+        const [year, month, day] = inputDate.split('-'); // Descompón la fecha
+        const formattedDate = `${day}/${month}/${year}`; // Cambia el formato a dd/mm/yyyy
+
+        // Asignar la fecha formateada al input
+        this.setAttribute('data-formatted', formattedDate);
+    }
+});
+
+document.getElementById('date').addEventListener('focus', function () {
+    // Muestra el formato dd/mm/yyyy cuando el campo esté enfocado
+    const formattedDate = this.getAttribute('data-formatted');
+    if (formattedDate) {
+        this.value = formattedDate.split('/').reverse().join('-'); // Ajusta la fecha al formato de input
+    }
+});
+
+document.addEventListener('DOMContentLoaded', function () {
+    // Función para contar los días en los que se han ingresado horas
+    function actualizarDiasSemanales() {
+        let diasModificados = 0;
+
+        // Recorremos todos los inputs de la columna de "Horas por día"
+        const horasInputs = document.querySelectorAll('.hours');
+
+        horasInputs.forEach(input => {
+            const valor = parseFloat(input.value) || 0; // Obtenemos el valor de cada input (si está vacío lo tratamos como 0)
+            if (valor > 0) {
+                diasModificados++; // Si hay horas ingresadas (mayor que 0), incrementamos el contador de días modificados
+            }
+        });
+
+        // Actualizamos el campo "Días semanales" con el número de días modificados
+        document.getElementById('dias-semanales-input').value = diasModificados;
+    }
+
+    // Agregar evento para que se actualice cada vez que se modifique un campo de horas
+    const horasInputs = document.querySelectorAll('.hours');
+    horasInputs.forEach(input => {
+        input.addEventListener('input', actualizarDiasSemanales);
     });
 
-    // Calcular las horas semanales
-    const weeklyHours = hoursPerDay * daysSelected;
+    // Ejecutar la función al cargar la página para inicializar el valor
+    actualizarDiasSemanales();
 
-    // Mostrar el resultado en el campo de horas semanales
-    document.getElementById('weeklyHours').value = weeklyHours;
-}
+    // Función para sumar las horas de todos los días y actualizar el campo "Horas semanales"
+    function actualizarHorasSemanales() {
+        let totalHoras = 0;
+
+        // Recorremos todos los inputs de la columna de "Horas por día"
+        const horasInputs = document.querySelectorAll('.hours');
+
+        horasInputs.forEach(input => {
+            // Convertir a número y manejar entradas no válidas como 0
+            const valor = parseFloat(input.value.trim()) || 0;
+            totalHoras += valor; // Sumar el valor al total
+        });
+
+        // Asegurarnos de que el resultado sea un número válido y con formato consistente
+        document.getElementById('horas-semanales').value = totalHoras.toFixed(2); // Mostrar con dos decimales
+    }
+
+    // Agregar un evento para actualizar la cantidad de días y horas cuando se cambie cualquier input de la tabla
+    document.querySelectorAll('.hours').forEach(input => {
+        input.addEventListener('input', function () {
+            actualizarDiasSemanales(); // Actualizar días semanales
+            actualizarHorasSemanales(); // Actualizar horas semanales
+        });
+    });
+
+});

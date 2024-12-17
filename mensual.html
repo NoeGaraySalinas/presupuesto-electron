@@ -7,6 +7,24 @@
     <title>Presupuesto Mensual</title>
 
     <style>
+        .container {
+            margin: 20px auto;
+            max-width: 1200px;
+        }
+
+        .full-width-input {
+            width: 100%;
+            margin: 5px 0;
+        }
+
+        .inline-input {
+            margin-right: 10px;
+        }
+
+        .right {
+            text-align: right;
+        }
+
         body {
             font-family: Verdana, sans-serif;
             /* Aplica Verdana a todo el cuerpo */
@@ -280,6 +298,87 @@
         #hoursPerDay {
             width: 100px;
         }
+
+        .table-container {
+            margin: 20px 0;
+            background: white;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-left: 5%;
+        }
+
+        th,
+        td {
+            padding: 10px;
+            text-align: left;
+            border: 1px solid #ddd;
+            font-size: 14px;
+        }
+
+        th {
+            background-color: #FFA500;
+            color: white;
+            font-weight: bold;
+        }
+
+        .highlight {
+            background-color: #f4f4f4;
+        }
+
+        .table-inputs-wrapper {
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
+            /* Espacio entre la tabla y los inputs */
+        }
+
+        #weekly-hours-table {
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+
+        #weekly-hours-table th,
+        #weekly-hours-table td {
+            border: 1px solid #000;
+            padding: 4px;
+            text-align: center;
+        }
+
+        #weekly-hours-table input {
+            width: 50px;
+            padding: 2px;
+            font-size: 12px;
+        }
+
+        .unique-inputs-container {
+            display: flex;
+            flex-direction: column;
+            gap: 1px;
+            /* Espacio entre los inputs */
+            margin-top: -30px;
+            /* Espacio entre la tabla y los inputs */
+            margin-left: 60px;
+        }
+
+        .unique-inputs-container label {
+            font-size: 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .unique-inputs-container input {
+            width: 60px;
+            padding: 2px;
+            font-size: 12px;
+            margin-left: 5px;
+        }
     </style>
 </head>
 
@@ -325,35 +424,48 @@
                 oninput="autoExpand(this)" required></textarea>
         </div>
 
-        <div style="display: flex; flex-direction: column; gap: 10px;">
-            <label for="hours">Horas por día:</label>
-            <select id="hoursPerDay" onchange="calculateWeeklyHours()">
-                <option value="">Seleccionar Horas</option>
-                <option value="1">1 hora</option>
-                <option value="2">2 Hs.</option>
-                <option value="3">3 Hs.</option>
-                <option value="4">4 Hs.</option>
-                <option value="5">5 Hs.</option>
-                <option value="6">6 Hs.</option>
-                <option value="7">7 Hs.</option>
-                <option value="8">8 Hs.</option>
-            </select>
+        <p>Horarios del servicio:</p>
 
-            <label>Días de la semana:</label>
-            <div style="display: flex; flex-wrap: wrap; gap: 10px;">
-                <label><input type="checkbox" class="dayCheckbox" value="Lunes"> Lunes</label>
-                <label><input type="checkbox" class="dayCheckbox" value="Martes"> Martes</label>
-                <label><input type="checkbox" class="dayCheckbox" value="Miércoles"> Miércoles</label>
-                <label><input type="checkbox" class="dayCheckbox" value="Jueves"> Jueves</label>
-                <label><input type="checkbox" class="dayCheckbox" value="Viernes"> Viernes</label>
-                <label><input type="checkbox" class="dayCheckbox" value="Sábado"> Sábado</label>
-                <label><input type="checkbox" class="dayCheckbox" value="Domingo"> Domingo</label>
+        <div class="table-inputs-wrapper">
+            <div class="unique-table-container">
+                <table id="weekly-hours-table">
+                    <thead>
+                        <tr>
+                            <th>L</th>
+                            <th>M</th>
+                            <th>M</th>
+                            <th>J</th>
+                            <th>V</th>
+                            <th>S</th>
+                            <th>D</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><input type="number" id="input-lunes" class="hours" placeholder="0" min="0"> hs</td>
+                            <td><input type="number" id="input-martes" class="hours" placeholder="0" min="0"> hs</td>
+                            <td><input type="number" id="input-miercoles" class="hours" placeholder="0" min="0"> hs</td>
+                            <td><input type="number" id="input-jueves" class="hours" placeholder="0" min="0"> hs</td>
+                            <td><input type="number" id="input-viernes" class="hours" placeholder="0" min="0"> hs</td>
+                            <td><input type="number" id="input-sabado" class="hours" placeholder="0" min="0"> hs</td>
+                            <td><input type="number" id="input-domingo" class="hours" placeholder="0" min="0"> hs</td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
 
-            <label for="weeklyHours">Horas semanales:</label>
-            <input type="number" id="weeklyHours" style="width: 50px;" readonly>
+            <div class="unique-inputs-container">
+                <label for="dias-semanales">Días semanales:
+                    <input type="number" id="dias-semanales-input" min="0" placeholder="0"></label>
+                <label for="horas-semanales">Horas semanales:
+                    <input type="number" id="horas-semanales" min="0" placeholder="0"></label>
+                <label for="num-operarios">Operarios:
+                    <input type="number" id="operarios" min="0" placeholder="0"></label>
+            </div>
         </div>
 
+        <br>
+        <br>
         <label for="tasks">Tareas a llevarse a cabo:</label>
         <textarea id="tasks" class="full-width-input" rows="1" oninput="autoExpand(this)" required></textarea>
 
@@ -366,8 +478,6 @@
             <textarea id="insumos-seleccionados" class="full-width-input" rows="1" oninput="autoExpand(this)" required
                 placeholder="Insumos seleccionados" readonly></textarea>
         </div>
-
-
 
         <!-- Texto adicional sobre funcionamiento de equipos -->
         <div id="equipment-text">
@@ -394,8 +504,26 @@
                 placeholder="Escribe aquí" required>
         </div>
 
+        <div class="input-container">
+            <select id="escala" type="text" id="escala-input" class="full-width-input" rows="1"
+                oninput="autoExpand(this)" required>
+                <option value="" disabled selected>Selecciona un tipo de cotizacion</option>
+                <option
+                    value="La presente cotización está realizada en base a las escalas salariales vigentes del Gremio S.O.E.L.S.A.C, quedando sin variantes, en tanto y en cuanto no se produzcan modificaciones en las mismas.">
+                    La presente cotización está realizada en base a las escalas salariales vigentes del Gremio
+                    S.O.E.L.S.A.C, quedando sin variantes, en tanto y en cuanto no se produzcan modificaciones en las
+                    mismas.</option>
+                <option
+                    value="La presente cotización está realizada en base a las escalas salariales vigentes del Gremio S.U.V.I.C.O., quedando sin variantes, en tanto y en cuanto no se produzcan modificaciones en las mismas.">
+                    La presente cotización está realizada en base a las escalas salariales vigentes del Gremio
+                    S.U.V.I.C.O., quedando sin variantes, en tanto y en cuanto no se produzcan modificaciones en las
+                    mismas.</option>
+            </select>
+        </div>
+
         <!-- Mensaje de despedida -->
-        <p id="saludoFinal">Esperamos que el presente presupuesto se ajuste a sus necesidades y sea de su interés.
+        <p id="saludoFinal">
+            Esperamos que el presente presupuesto se ajuste a sus necesidades y sea de su interés.
             Estamos a su
             disposición por cualquier consulta, aclaración o modificación del mismo.</p>
 
@@ -420,43 +548,11 @@
         <div id="message"></div>
     </div>
 
-    <!-- Script de funciones -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.2/html2pdf.bundle.min.js"></script>
-
-
-    <script>
-        function autoExpand(element) {
-            // Ajustar el tamaño del textarea de acuerdo a su contenido
-            element.style.height = 'auto';
-            element.style.height = (element.scrollHeight) + 'px';
-        }
-
-        function generatePDF() {
-            // Ajusta el estilo del destinatario para el PDF
-            const recipient = document.getElementById('recipient');
-            recipient.style.marginTop = '20px';
-
-            const element = document.body;
-
-            // Opciones de html2pdf para ajustar el margen y otros parámetros
-            const opt = {
-                margin: [10, 0, 0, 0],  // Márgenes superiores, derechos, inferiores, izquierdos
-                filename: 'presupuesto.pdf',
-                image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2 },
-                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-            };
-
-            // Generar el PDF
-            html2pdf().from(element).set(opt).save()
-                .then(() => {
-                    // Restaurar el estilo original después de la generación del PDF
-                    recipient.style.marginTop = '0';
-                });
-        }
-    </script>
+    <!-- Script de jsPDF (versión más reciente) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <!-- Script de funciones personalizado -->
     <script src="renderer.js" defer></script>
+
 
 </body>
 

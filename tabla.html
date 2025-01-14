@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tabla Dinámica</title>
+    <style>
+        #table-body {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: center;
+        }
+
+        th,
+        td {
+            border: 1px solid #ccc;
+            padding: 10px;
+        }
+
+        th {
+            background-color: #f4f4f4;
+        }
+
+        .total {
+            font-weight: bold;
+            background-color: #e8e8e8;
+        }
+
+        input {
+            width: 100%;
+            box-sizing: border-box;
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+    <table>
+        <thead>
+            <tr>
+                <th>Días</th>
+                <th>Horas por día</th>
+                <th>Personal por día</th>
+                <th>Total de horas por día</th>
+            </tr>
+        </thead>
+        <tbody id="table-body">
+            <tr>
+                <td>Lunes</td>
+                <td><input type="number" class="hours" oninput="calculateRow(this)"></td>
+                <td><input type="number" class="personnel" oninput="calculateRow(this)"></td>
+                <td class="daily-total">0</td>
+            </tr>
+            <tr>
+                <td>Martes</td>
+                <td><input type="number" class="hours" oninput="calculateRow(this)"></td>
+                <td><input type="number" class="personnel" oninput="calculateRow(this)"></td>
+                <td class="daily-total">0</td>
+            </tr>
+            <tr>
+                <td>Miércoles</td>
+                <td><input type="number" class="hours" oninput="calculateRow(this)"></td>
+                <td><input type="number" class="personnel" oninput="calculateRow(this)"></td>
+                <td class="daily-total">0</td>
+            </tr>
+            <tr>
+                <td>Jueves</td>
+                <td><input type="number" class="hours" oninput="calculateRow(this)"></td>
+                <td><input type="number" class="personnel" oninput="calculateRow(this)"></td>
+                <td class="daily-total">0</td>
+            </tr>
+            <tr>
+                <td>Viernes</td>
+                <td><input type="number" class="hours" oninput="calculateRow(this)"></td>
+                <td><input type="number" class="personnel" oninput="calculateRow(this)"></td>
+                <td class="daily-total">0</td>
+            </tr>
+            <tr>
+                <td>Sábado</td>
+                <td><input type="number" class="hours" oninput="calculateRow(this)"></td>
+                <td><input type="number" class="personnel" oninput="calculateRow(this)"></td>
+                <td class="daily-total">0</td>
+            </tr>
+            <tr>
+                <td>Domingo</td>
+                <td><input type="number" class="hours" oninput="calculateRow(this)"></td>
+                <td><input type="number" class="personnel" oninput="calculateRow(this)"></td>
+                <td class="daily-total">0</td>
+            </tr>
+            <tr class="total">
+                <td>Total general</td>
+                <td colspan="2"></td>
+                <td id="grand-total">0</td>
+            </tr>
+        </tbody>
+    </table>
+
+</body>
+
+</html>

@@ -1,6 +1,6 @@
 {
   "name": "presupuesto-electron",
-  "version": "2.0.3",
+  "version": "2.1.9",
   "description": "Aplicación para generar presupuestos a partir de una planilla pre diseñada",
   "main": "main.js",
   "scripts": {
@@ -11,25 +11,22 @@
   },
   "build": {
     "appId": "presupuesto-electron",
-    "productName": "presupuesto-electron",
+    "productName": "Presupuesto-electron",
     "files": [
       "dist/**/*",
-      "bannerCorsacor.jfif",
+      "images/**/*",
       "eventual.html",
       "final_obra.html",
-      "imagenEventual.png",
-      "imagenFinal.jpeg",
-      "imagenMensual.png",
-      "imagenSeguridad.jpeg",
       "index.html",
       "insumos.json",
       "launch.json",
       "main.js",
       "mensual.html",
-      "NUEVO FORMULARIO EVENTUAL(1)(1).pdf.png",
+      "NUEVO FORMULARIO.png",
       "package.json",
       "renderer.js",
-      "seguridad.html"
+      "seguridad.html",
+      "icon.ico"
     ],
     "mac": {
       "category": "public.app-category.utilities"
@@ -49,7 +46,7 @@
   },
   "dependencies": {
     "jspdf": "^2.5.2",
-    "jspdf-autotable": "^3.8.3",
+    "jspdf-autotable": "^3.8.4",
     "pdf-lib": "^1.17.1",
     "sqlite3": "^5.1.7"
   }

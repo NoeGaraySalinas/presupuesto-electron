@@ -330,7 +330,7 @@ function addItemMensual() {
       <p>Costo: ${payment}</p>
       <p>${escala}</p>
       <p>En todos nuestros servicios nos comprometemos y ofrecemos:</p>
-      <p>-> Supervisión continua -> uniformes y elementos de protección personal -> cronograma y planificación detallada de limpieza de todos los espacios comunes del edificio -> traslados y reemplazos -> personal capacitado y entrenado en procesos y tareas requeridas </p>
+      <p>-> Supervisión continua -> uniformes y elementos de protección personal -> Cronograma y planificación detallada de limpieza de todos los espacios incluidos -> traslados y reemplazos -> personal capacitado y entrenado en procesos y tareas requeridas </p>
       <p id="saludoFinal">Esperamos que el presente presupuesto se ajuste a sus necesidades y sea de su interés. Estamos a su disposición por cualquier consulta, aclaración o modificación del mismo.</p>
       <p style="text-align:right">Sandra Córdoba<br>Área Comercial<br>Tel: 351-2049880</p>
     `;
@@ -362,6 +362,7 @@ function addItemEventual() {
       <p>Vigencia: ${validity}</p>
       <p>Costo: ${payment}</p>
       <p>En todos nuestros servicios nos comprometemos y ofrecemos:<p>
+      <p>-> Supervisión continua -> uniformes y elementos de protección personal -> Cronograma y planificación detallada de limpieza de todos los espacios incluidos -> traslados y reemplazos -> personal capacitado y entrenado en procesos y tareas requeridas </p>
       <p>La forma de pago es abonando el 50% del total al inicio del trabajo, y el 50% restante al finalizar el mismo.</p>
       <p id="saludoFinal">Esperamos que el presente presupuesto se ajuste a sus necesidades y sea de su interés. Estamos a su disposición por cualquier consulta, aclaración o modificación del mismo.</p>
       <p style="text-align:right">Sandra Córdoba<br>Área Comercial<br>Tel: 351-2049880</p>
@@ -451,7 +452,7 @@ function addItemFinalDeObra() {
       <p>Funcionamiento de equipos, maquinarias, herramientas e implementos: En óptimas condiciones de funcionamiento para el desarrollo de las tareas programadas por nuestra área operativa.</p>
       <p>Vigencia: ${validity}</p>
       <p>En todos nuestros servicios nos comprometemos y ofrecemos:<p>
-      <p>-> Supervición continua -> uniformes y elementos de protección personal -> cronograma y planificación detallada de limpieza de todos los espacios comunes del edificio -> traslados y reemplazos -> personal capacitado y entrenado en procesos y tareas requeridas </p>
+      <p>-> Supervisión continua -> uniformes y elementos de protección personal -> Cronograma y planificación detallada de limpieza de todos los espacios incluidos -> traslados y reemplazos -> personal capacitado y entrenado en procesos y tareas requeridas </p>
       <p>Costo: ${payment}</p>
       <p>La forma de pago es abonando el 50% del total al inicio del trabajo, y el 50% restante al finalizar el mismo.</p>
       <p id="saludoFinal">Esperamos que el presente presupuesto se ajuste a sus necesidades y sea de su interés. Estamos a su disposición por cualquier consulta, aclaración o modificación del mismo.</p>
@@ -515,7 +516,7 @@ function deleteItemEventual() {
       <p>Funcionamiento de equipos, maquinarias, herramientas e implementos: En óptimas condiciones de funcionamiento para el desarrollo de las tareas programadas por nuestra área operativa.</p>
       <p>Vigencia: ${validity}</p>
       <p>En todos nuestros servicios nos comprometemos y ofrecemos:<p>
-      <p>-> Supervición continua -> uniformes y elementos de protección personal -> cronograma y planificación detallada de limpieza de todos los espacios comunes del edificio -> traslados y reemplazos -> personal capacitado y entrenado en procesos y tareas requeridas </p>
+      <p>-> Supervisión continua -> uniformes y elementos de protección personal -> Cronograma y planificación detallada de limpieza de todos los espacios incluidos -> traslados y reemplazos -> personal capacitado y entrenado en procesos y tareas requeridas </p>
       <p>Costo: ${payment}</p>
       <p>La forma de pago es abonando el 50% del total al inicio del trabajo, y el 50% restante al finalizar el mismo.</p>
       <p id="saludoFinal">Esperamos que el presente presupuesto se ajuste a sus necesidades y sea de su interés. Estamos a su disposición por cualquier consulta, aclaración o modificación del mismo.</p>
@@ -603,7 +604,7 @@ function deleteItemFinalDeObra() {
       <p>Funcionamiento de equipos, maquinarias, herramientas e implementos: En óptimas condiciones de funcionamiento para el desarrollo de las tareas programadas por nuestra área operativa.</p>
       <p>Vigencia: ${validity}</p>
       <p>En todos nuestros servicios nos comprometemos y ofrecemos:<p>
-      <p>-> Supervición continua -> uniformes y elementos de protección personal -> cronograma y planificación detallada de limpieza de todos los espacios comunes del edificio -> traslados y reemplazos -> personal capacitado y entrenado en procesos y tareas requeridas </p>
+      <p>-> Supervisión continua -> uniformes y elementos de protección personal -> Cronograma y planificación detallada de limpieza de todos los espacios incluidos -> traslados y reemplazos -> personal capacitado y entrenado en procesos y tareas requeridas </p>
       <p>Costo: ${payment}</p>
       <p>La forma de pago es abonando el 50% del total al inicio del trabajo, y el 50% restante al finalizar el mismo.</p>
       <p id="saludoFinal">Esperamos que el presente presupuesto se ajuste a sus necesidades y sea de su interés. Estamos a su disposición por cualquier consulta, aclaración o modificación del mismo.</p>
@@ -827,7 +828,7 @@ async function generatePDFmensual() {
         yOffset += lineSpacing;
 
         yOffset = justifyText('En todos nuestros servicios nos comprometemos y ofrecemos:', yOffset);
-        yOffset = justifyText('-> Supervición continua -> uniformes y elementos de protección personal -> cronograma y planificación detallada de limpieza de todos los espacios comunes del edificio -> traslados y reemplazos -> personal capacitado y entrenado en procesos y tareas requeridas.', yOffset);
+        yOffset = justifyText('-> Supervisión continua -> uniformes y elementos de protección personal -> Cronograma y planificación detallada de limpieza de todos los espacios incluidos -> personal capacitado y entrenado en procesos y tareas requeridas.', yOffset);
         yOffset += lineSpacing;
 
         // Aplicar negrita en "Costo"
@@ -940,7 +941,7 @@ async function generatePDFeventual() {
         yOffset += lineSpacing * 1;
 
         yOffset = justifyText(`En todos nuestros servicios nos comprometemos y ofrecemos:`, yOffset);
-        yOffset = justifyText(`-> Supervición continua -> uniformes y elementos de protección personal -> cronograma y planificación detallada de limpieza de todos los espacios comunes del edificio -> traslados y reemplazos -> personal capacitado y entrenado en procesos y tareas requeridas.`, yOffset);
+        yOffset = justifyText(`-> Supervisión continua -> uniformes y elementos de protección personal -> Cronograma y planificación detallada de limpieza de todos los espacios incluidos -> traslados y reemplazos -> personal capacitado y entrenado en procesos y tareas requeridas.`, yOffset);
         yOffset += lineSpacing * 1;
 
         yOffset = justifyText(`- COSTO: ${payment}`, yOffset);
@@ -1212,16 +1213,22 @@ async function generatePDFfinalObra() {
         doc.setFontSize(10); // Volver al tamaño de fuente normal
         yOffset = justifyText(`- FUNCIONAMIENTO DE EQUIPOS. MAQUINARIAS, HERRAMIENTAS E IMPLEMENTOS: En óptimas condiciones de funcionamiento para el desarrollo de las tareas programadas por nuestra área operativa.`, yOffset);
 
+        doc.setFont('Cambria', 'bold');
         yOffset = justifyText(`- DÍAS DE VIGENCIA DEL PRESUPUESTO: ${validity}.`, yOffset);
+        doc.setFont('Cambria', 'italic');
         yOffset += lineSpacing * 1;
 
         yOffset = justifyText(`En todos nuestros servicios nos comprometemos y ofrecemos:`, yOffset);
-        yOffset = justifyText(`-> Supervición continua -> uniformes y elementos de protección personal -> cronograma y planificación detallada de limpieza de todos los espacios comunes del edificio -> traslados y reemplazos -> personal capacitado y entrenado en procesos y tareas requeridas.`, yOffset);
+        yOffset = justifyText(`-> Supervisión continua -> uniformes y elementos de protección personal -> Cronograma y planificación detallada de limpieza de todos los espacios incluidos -> traslados y reemplazos -> personal capacitado y entrenado en procesos y tareas requeridas`, yOffset);
         yOffset += lineSpacing * 1;
 
+        doc.setFont('Cambria', 'bold');
         yOffset = justifyText(`- COSTO: ${payment}`, yOffset);
+        doc.setFont('Cambria', 'italic');
         yOffset += lineSpacing * 1;
 
+        yOffset = justifyText(`La forma de pago es abonando el 50% del total al inicio del trabajo, y el 50% restante al finalizar el mismo.`, yOffset);
+        
         doc.setFontSize(10); // Volver al tamaño de fuente normal
         yOffset = justifyText(`Esperamos que el presente presupuesto se ajuste a sus necesidades y sea de su interés. Estamos a su disposición por cualquier consulta, aclaración o modificación del mismo.`, yOffset);
 
@@ -1348,3 +1355,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
 });
+
+
+
+
